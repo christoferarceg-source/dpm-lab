@@ -11,7 +11,7 @@ Python on Meridian's data, which has problems planted in it.
 ## What's in it
 
 - **Learn** (`/`): a path of 7 units: Level 0 (SQL & Python 101, 8 lessons)
-  then the six story weeks (5–6 lessons each). Each lesson =
+  then the six story weeks (5–8 lessons each). Each lesson =
   a concept card + five interactions (multiple choice, true/false, fill the
   blank, match pairs, put in order, spot the SQL bug) with instant feedback
   and an explanation. Three hearts per lesson; run out and you review and
@@ -23,8 +23,8 @@ Python on Meridian's data, which has problems planted in it.
 - **XP and levels**: 10 XP per lesson, +5 for a perfect run, 20 XP per Lab
   exercise, 100 XP per level. The Profile tab shows level, streak, and
   progress per unit.
-- **Review**: 34 SM-2 spaced-repetition flashcards.
-- **Story** (`/chapters/n`) and **Library** (`/kb`, 20 entries): the briefs,
+- **Review**: 37 SM-2 spaced-repetition flashcards.
+- **Story** (`/chapters/n`) and **Library** (`/kb`, 21 entries): the briefs,
   debriefs, and reference notes behind the lessons.
 - Mobile-first: bottom tab bar on phones, top nav on desktop. Progress lives
   in the browser's localStorage (no account yet).
@@ -77,7 +77,7 @@ npm run deploy       # static export with basePath /dpm-lab, pushed to the gh-pa
 ```
 app/                  / (path), /lesson/[id], /chapters/[n], /practice, /practice/{sql,python}, /profile, /kb, /review
 content/
-  lessons.ts          39 micro-lessons (concept + 5 items each), units and colours
+  lessons.ts          41 micro-lessons (concept + 5 items each), units and colours
   story.ts            company, cast, six chapters (brief, readings, debrief)
   kb.ts               knowledge-base entries; flashcards.ts the review deck
   dataset.ts          seeded generator + schema + table docs
