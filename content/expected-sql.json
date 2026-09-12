@@ -1,4 +1,121 @@
 {
+  "sql0-select-where": {
+    "columns": [
+      "deal_id",
+      "owner",
+      "amount"
+    ],
+    "rows": [
+      [
+        "DEAL-071",
+        "Jordan Blake",
+        43000
+      ],
+      [
+        "DEAL-083",
+        "Diego Alvarez",
+        8000
+      ],
+      [
+        "DEAL-094",
+        "Priya Nair",
+        149500
+      ],
+      [
+        "DEAL-122",
+        "Amara Osei",
+        11000
+      ],
+      [
+        "DEAL-134",
+        "Diego Alvarez",
+        13000
+      ],
+      [
+        "DEAL-162",
+        "Diego Alvarez",
+        9000
+      ],
+      [
+        "DEAL-280",
+        "Meiling Zhao",
+        61000
+      ],
+      [
+        "DEAL-282",
+        "Meiling Zhao",
+        42500
+      ],
+      [
+        "DEAL-365",
+        "Priya Nair",
+        42000
+      ],
+      [
+        "DEAL-384",
+        "Meiling Zhao",
+        29500
+      ],
+      [
+        "DEAL-398",
+        "Amara Osei",
+        54500
+      ],
+      [
+        "DEAL-415",
+        "Jordan Blake",
+        16000
+      ]
+    ]
+  },
+  "sql0-count-by-stage": {
+    "columns": [
+      "stage",
+      "deals"
+    ],
+    "rows": [
+      [
+        "closed_won",
+        198
+      ],
+      [
+        "closed_lost",
+        169
+      ],
+      [
+        "proposal",
+        23
+      ],
+      [
+        "negotiation",
+        18
+      ],
+      [
+        "qualified",
+        12
+      ]
+    ]
+  },
+  "sql0-avg-by-region": {
+    "columns": [
+      "region",
+      "avg_amount"
+    ],
+    "rows": [
+      [
+        "AMER",
+        41710
+      ],
+      [
+        "APAC",
+        62792
+      ],
+      [
+        "EMEA",
+        89865
+      ]
+    ]
+  },
   "sql-select-closed-won": {
     "columns": [
       "deal_id",

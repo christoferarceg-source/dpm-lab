@@ -2,10 +2,10 @@ import { units, allLessons } from "@/content/lessons";
 import { sqlExercisesForChapter } from "@/content/exercises-sql";
 import { pythonExercisesForChapter } from "@/content/exercises-python";
 import type { ProgressData } from "./progress-store";
-import type { ChapterNumber, Lesson } from "./types";
+import type { Lesson, UnitNumber } from "./types";
 
 export type UnitProgress = {
-  number: ChapterNumber;
+  number: UnitNumber;
   lessonsTotal: number;
   lessonsDone: number;
   labTotal: number;
@@ -16,7 +16,7 @@ export type UnitProgress = {
   nextLessonId: string | null;
 };
 
-export function unitProgress(data: ProgressData, number: ChapterNumber): UnitProgress {
+export function unitProgress(data: ProgressData, number: UnitNumber): UnitProgress {
   const unit = units.find((u) => u.number === number)!;
   const done = unit.lessons.filter((l) => data.lessons[l.id]);
   const labs = [...sqlExercisesForChapter(number), ...pythonExercisesForChapter(number)];
@@ -43,8 +43,8 @@ export function nextLesson(data: ProgressData): Lesson | null {
   return allLessons.find((l) => !data.lessons[l.id]) ?? null;
 }
 
-export function currentUnit(data: ProgressData): ChapterNumber {
-  return (nextLesson(data)?.unit ?? 6) as ChapterNumber;
+export function currentUnit(data: ProgressData): UnitNumber {
+  return nextLesson(data)?.unit ?? 6;
 }
 
 export function totals(data: ProgressData): { lessonsDone: number; lessonsTotal: number; labsDone: number; labsTotal: number } {

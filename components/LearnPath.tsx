@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { units } from "@/content/lessons";
+import { getChapter } from "@/content/story";
 import { sqlExercisesForChapter } from "@/content/exercises-sql";
 import { allUnitProgress, nextLesson } from "@/lib/chapter-progress";
 import { useProgress } from "@/lib/progress-store";
@@ -68,9 +69,13 @@ export function LearnPath() {
                 <p className="text-sm opacity-90 mt-0.5">{unit.tagline}</p>
               </div>
               <div className="shrink-0 text-right">
-                <Link href={`/chapters/${unit.number}`} className="inline-block text-xs font-medium bg-white/20 hover:bg-white/30 rounded-md px-2.5 py-1.5">
-                  Story
-                </Link>
+                {getChapter(unit.number) ? (
+                  <Link href={`/chapters/${unit.number}`} className="inline-block text-xs font-medium bg-white/20 hover:bg-white/30 rounded-md px-2.5 py-1.5">
+                    Story
+                  </Link>
+                ) : (
+                  <span className="inline-block text-xs font-medium bg-white/20 rounded-md px-2.5 py-1.5">Basics</span>
+                )}
                 {hydrated && (
                   <p className="text-xs opacity-80 mt-2 tabular-nums">
                     {p.lessonsDone}/{p.lessonsTotal} lessons

@@ -12,8 +12,8 @@ import { Markdown } from "./Markdown";
 import { useProgress, type ExerciseStatus } from "@/lib/progress-store";
 import { getKbEntry } from "@/lib/kb";
 import { setHash, useHash } from "@/lib/use-hash";
-import { chapters } from "@/content/story";
-import type { ChapterNumber, Difficulty, DpmConnection, ExerciseKind } from "@/lib/types";
+import { units } from "@/content/lessons";
+import type { Difficulty, DpmConnection, ExerciseKind, UnitNumber } from "@/lib/types";
 
 const CodeEditor = dynamic(() => import("./CodeEditor").then((m) => m.CodeEditor), {
   ssr: false,
@@ -22,7 +22,7 @@ const CodeEditor = dynamic(() => import("./CodeEditor").then((m) => m.CodeEditor
 
 export type WorkspaceExercise = {
   slug: string;
-  chapter: ChapterNumber;
+  chapter: UnitNumber;
   title: string;
   difficulty: Difficulty;
   prompt: string;
@@ -80,8 +80,8 @@ export function PracticeWorkspace(props: Props) {
 
   const progressOf = (slug: string): ExerciseStatus => data.exercises[slug]?.status ?? "not_started";
   const solvedCount = exercises.filter((e) => progressOf(e.slug) === "solved").length;
-  const grouped = chapters
-    .map((c) => ({ chapter: c, items: exercises.filter((e) => e.chapter === c.number) }))
+  const grouped = units
+    .map((u) => ({ chapter: u, items: exercises.filter((e) => e.chapter === u.number) }))
     .filter((g) => g.items.length > 0);
   const numberOf = new Map(exercises.map((e, i) => [e.slug, i + 1]));
 
@@ -169,7 +169,7 @@ function ExercisePanel({
   const [running, setRunning] = useState(false);
   const [outcome, setOutcome] = useState<RunOutcome | null>(null);
   const [gradeResult, setGradeResult] = useState<GradeOutcome | null>(null);
-  const chapter = chapters.find((c) => c.number === exercise.chapter);
+  const chapter = units.find((u) => u.number === exercise.chapter);
 
   const onRun = useCallback(
     async (check: boolean) => {

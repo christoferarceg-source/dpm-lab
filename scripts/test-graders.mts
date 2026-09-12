@@ -58,7 +58,7 @@ for (const ex of pythonExercises) {
 check("no stale SQL expected entries", Object.keys(sqlExp).every((k) => sqlExercises.some((e) => e.slug === k)));
 check("no stale Python expected entries", Object.keys(pyExp).every((k) => pythonExercises.some((e) => e.slug === k)));
 // lessons: 6 units × 5 lessons × (1 concept + 5 items); every item well-formed
-check("6 units of 5 lessons", units.length === 6 && units.every((u) => u.lessons.length === 5), units.map((u) => u.lessons.length).join(","));
+check("7 units (Level 0 + 6 chapters), 5+ lessons each", units.length === 7 && units[0].number === 0 && units.every((u) => u.lessons.length >= 5), units.map((u) => u.lessons.length).join(","));
 const itemIds = new Set<string>();
 for (const l of allLessons) {
   check(`${l.id}: concept card first, 5 interactions`, l.items[0]?.kind === "concept" && l.items.length === 6 && l.items.slice(1).every((it) => it.kind !== "concept"), l.items.map((i) => i.kind).join(","));
@@ -132,15 +132,16 @@ check("deepEqual numeric string vs number", deepEqual("84000", 84000));
 }
 {
   let d = emptyProgress();
-  check("fresh progress: unit 1, first lesson u1-l1", currentUnit(d) === 1 && nextLesson(d)?.id === "u1-l1");
-  for (const l of units[0].lessons) d = applyLessonComplete(d, l.id, l.id === "u1-l1" ? 0.8 : 1);
+  check("fresh progress: unit 0, first lesson u0-l1", currentUnit(d) === 0 && nextLesson(d)?.id === "u0-l1");
+  for (const l of units[0].lessons) d = applyLessonComplete(d, l.id, 1);
+  for (const l of units[1].lessons) d = applyLessonComplete(d, l.id, l.id === "u1-l1" ? 0.8 : 1);
   const p1 = unitProgress(d, 1);
   check("unit 1 complete after 5 lessons; next is u2-l1", p1.complete && nextLesson(d)?.id === "u2-l1", JSON.stringify(p1));
   const xp1 = computeXp(d);
-  check("XP: 4 perfect (15) + 1 imperfect (10) = 70", xp1.total === 70, String(xp1.total));
+  check("XP: 8 + 4 perfect (15) + 1 imperfect (10) = 190", xp1.total === 190, String(xp1.total));
   for (const e of sqlExercises.filter((e) => e.chapter === 1)) d = applyAttempt(d, e.slug, "sql", "x", true);
   const xp2 = computeXp(d);
-  check("XP: +20 per lab exercise", xp2.total === 70 + 20 * sqlExercises.filter((e) => e.chapter === 1).length, String(xp2.total));
+  check("XP: +20 per lab exercise", xp2.total === 190 + 20 * sqlExercises.filter((e) => e.chapter === 1).length, String(xp2.total));
   check("level math", levelFor(150).level === 2 && levelFor(150).toNext === 50 && levelFor(0).level === 1);
   // grading helpers
   const mcqItem = allLessons[0].items.find((i) => i.kind === "mcq")!;

@@ -13,6 +13,63 @@ import type { SqlExercise } from "@/lib/types";
 const STAGE_ORDER_SQL = `CASE stage WHEN 'prospecting' THEN 1 WHEN 'qualified' THEN 2 WHEN 'proposal' THEN 3 WHEN 'negotiation' THEN 4 WHEN 'closed_won' THEN 5 ELSE 6 END`;
 
 export const sqlExercises: SqlExercise[] = [
+  // =================== Level 0 · SQL & Python 101 (Lab 0) ===================
+  {
+    slug: "sql0-select-where",
+    chapter: 0,
+    title: "Pick columns, keep rows",
+    difficulty: "warmup",
+    prompt: `Return the **deal_id**, **owner**, and **amount** of every deal currently in stage \`qualified\`, ordered by \`deal_id\`.`,
+    starterQuery: `SELECT deal_id, owner, amount
+FROM deals
+WHERE stage = '...'
+ORDER BY deal_id;`,
+    solution: `SELECT deal_id, owner, amount FROM deals WHERE stage = 'qualified' ORDER BY deal_id;`,
+    orderMatters: true,
+    dpmConnection: {
+      text: "SELECT / FROM / WHERE / ORDER BY is the sentence every other query extends. Being able to list the exact rows behind a number is the first habit of a Data PM.",
+      kbSlug: "sql-101",
+    },
+    hint: "Text values need single quotes: 'qualified'.",
+  },
+  {
+    slug: "sql0-count-by-stage",
+    chapter: 0,
+    title: "How many deals per stage?",
+    difficulty: "warmup",
+    prompt: `Count the deals in each \`stage\`. Return \`stage\` and \`deals\` (the count), ordered by \`deals\` descending, then \`stage\`.`,
+    starterQuery: `SELECT stage, COUNT(*) AS deals
+FROM deals
+GROUP BY -- ?
+ORDER BY deals DESC, stage;`,
+    solution: `SELECT stage, COUNT(*) AS deals FROM deals GROUP BY stage ORDER BY deals DESC, stage;`,
+    orderMatters: true,
+    dpmConnection: {
+      text: "GROUP BY turns a table into one row per value. This is the shape of almost every chart: a dimension and a count.",
+      kbSlug: "sql-101",
+    },
+    hint: "GROUP BY stage.",
+  },
+  {
+    slug: "sql0-avg-by-region",
+    chapter: 0,
+    title: "Average deal size by region (JOIN)",
+    difficulty: "warmup",
+    prompt: `Region lives on \`accounts\`; amount lives on \`deals\`. Join them and return \`region\` and \`avg_amount\` (average \`amount\`, rounded to 0 decimals), ordered by region.`,
+    starterQuery: `SELECT a.region, ROUND(AVG(d.amount), 0) AS avg_amount
+FROM deals d
+JOIN accounts a ON -- the shared key
+GROUP BY a.region
+ORDER BY a.region;`,
+    solution: `SELECT a.region, ROUND(AVG(d.amount), 0) AS avg_amount FROM deals d JOIN accounts a ON a.account_id = d.account_id GROUP BY a.region ORDER BY a.region;`,
+    orderMatters: true,
+    dpmConnection: {
+      text: "Your first join: pair each deal with its account through account_id, then aggregate. Every metric that slices by a customer attribute has this shape.",
+      kbSlug: "sql-101",
+    },
+    hint: "ON a.account_id = d.account_id.",
+  },
+
   // =================== Chapter 1 · The Bullseye (warm-ups) ===================
   {
     slug: "sql-select-closed-won",

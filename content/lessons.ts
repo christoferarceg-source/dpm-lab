@@ -1,4 +1,4 @@
-import type { ChapterNumber, FillItem, Lesson, LessonItem, MatchItem, McqItem, OrderItem, TrueFalseItem, Unit } from "@/lib/types";
+import type { ChapterNumber, FillItem, Lesson, LessonItem, MatchItem, McqItem, OrderItem, TrueFalseItem, Unit, UnitNumber } from "@/lib/types";
 import { chapters } from "./story";
 
 // Micro-lessons: one concept card + five quick interactions, about a
@@ -22,9 +22,109 @@ const fill = (prompt: string, bank: string[], answer: string, explanation: strin
 const match = (prompt: string, pairs: [string, string][], explanation: string, kbSlug?: string): Omit<MatchItem, "id"> => ({ kind: "match", prompt, pairs, explanation, kbSlug });
 const order = (prompt: string, steps: string[], explanation: string, kbSlug?: string): Omit<OrderItem, "id"> => ({ kind: "order", prompt, steps, explanation, kbSlug });
 
-function lesson(id: string, unit: ChapterNumber, title: string, items: Draft[]): Lesson {
+function lesson(id: string, unit: UnitNumber, title: string, items: Draft[]): Lesson {
   return { id, unit, title, items: items.map((it, i) => ({ ...it, id: `${id}-${i + 1}` }) as LessonItem) };
 }
+
+// ======================= LEVEL 0 · SQL & Python 101 =======================
+const u0: Lesson[] = [
+  lesson("u0-l1", 0, "SELECT, FROM, WHERE", [
+    concept(
+      "The shape of every query",
+      "A query reads like a sentence: **SELECT** which columns, **FROM** which table, **WHERE** which rows. `SELECT deal_id, amount FROM deals WHERE stage = 'closed_won';` Text values go in single quotes; the semicolon ends the statement.",
+      "sql-101"
+    ),
+    fill("SELECT deal_id, amount ___ deals;", ["FROM", "IN", "AT", "OF"], "FROM", "FROM names the table. SELECT names the columns you want back from it.", "sql-101"),
+    mcq("Which query returns only the deals that were won?", ["SELECT * FROM deals;", "SELECT * FROM deals WHERE stage = 'closed_won';", "SELECT stage FROM deals;", "SELECT * WHERE stage = 'closed_won';"], 1, "WHERE keeps the rows that match the condition. The last option is missing FROM, so it doesn't run.", ["No WHERE: every row comes back.", undefined, "That picks a column, not rows.", "There's no table named."], "sql-101"),
+    order("Put the clauses in the order SQL expects.", ["SELECT", "FROM", "WHERE", "ORDER BY"], "SELECT → FROM → WHERE → (GROUP BY → HAVING) → ORDER BY → LIMIT. The order is fixed; you can leave clauses out but not swap them.", "sql-101"),
+    tf("`SELECT *` returns every column of the table.", true, "The star means all columns. Handy for exploring; in a real query, name the columns you need.", "sql-101"),
+    match("Match the clause to what it does.", [["SELECT", "Which columns"], ["FROM", "Which table"], ["WHERE", "Which rows"], ["ORDER BY", "In what order"]], "Four words, one sentence: pick columns from a table, keep rows, sort.", "sql-101"),
+  ]),
+  lesson("u0-l2", 0, "Filters: AND, OR, IN, NULL", [
+    concept(
+      "Combining conditions",
+      "`WHERE region = 'AMER' AND amount > 50000` needs both. `OR` needs either. `IN ('a','b')` is a short OR. `IS NULL` tests for missing values; `= NULL` never matches. Comparisons: `=`, `<>` (not equal), `<`, `>`, `<=`, `>=`, `BETWEEN x AND y`.",
+      "sql-101"
+    ),
+    mcq("Deals in AMER worth more than 50,000. Which WHERE?", ["WHERE region = 'AMER' OR amount > 50000", "WHERE region = 'AMER' AND amount > 50000", "WHERE region = 'AMER', amount > 50000", "WHERE region = AMER AND amount > '50000'"], 1, "AND requires both conditions. Commas don't combine conditions, and text needs quotes while numbers don't.", undefined, "sql-101"),
+    fill("stage ___ ('closed_won', 'closed_lost') keeps resolved deals.", ["IN", "AS", "ON", "IS"], "IN", "IN is a compact way to write stage = 'closed_won' OR stage = 'closed_lost'.", "sql-101"),
+    tf("`WHERE closed_date = NULL` finds rows with a missing close date.", false, "NULL never equals anything. Write closed_date IS NULL.", "sql-101"),
+    match("Match the operator to its meaning.", [["<>", "Not equal"], ["BETWEEN 1 AND 5", "In a range, inclusive"], ["IN (…)", "Any of a list"], ["IS NULL", "Value is missing"]], "The four comparisons that trip people up most.", "sql-101"),
+    mcq("`WHERE source = 'Inbound' OR source = 'Referral' AND stage = 'closed_won'`. Which deals come back?", ["Inbound or Referral deals that were won", "All Inbound deals, plus Referral deals that were won", "Only won deals", "It errors"], 1, "AND binds tighter than OR. Use parentheses: (source = 'Inbound' OR source = 'Referral') AND stage = 'closed_won'.", undefined, "sql-101"),
+  ]),
+  lesson("u0-l3", 0, "Sort, limit, count, sum", [
+    concept(
+      "Order and aggregate",
+      "`ORDER BY amount DESC` sorts biggest first (`ASC` is the default). `LIMIT 5` keeps five rows. Aggregates collapse many rows into one value: `COUNT(*)`, `SUM(amount)`, `AVG(amount)`, `MIN`, `MAX`. Give results a name with `AS`: `SUM(amount) AS total`.",
+      "sql-101"
+    ),
+    fill("SELECT ___(amount) AS total FROM deals;", ["SUM", "COUNT", "SIZE", "TOTAL"], "SUM", "SUM adds the column up. COUNT counts rows. TOTAL and SIZE aren't SQL functions.", "sql-101"),
+    mcq("The five biggest deals?", ["SELECT * FROM deals ORDER BY amount LIMIT 5;", "SELECT * FROM deals ORDER BY amount DESC LIMIT 5;", "SELECT TOP 5 FROM deals;", "SELECT * FROM deals LIMIT 5 ORDER BY amount;"], 1, "DESC puts the largest first; LIMIT comes last. Without DESC you'd get the five smallest.", undefined, "sql-101"),
+    tf("`COUNT(*)` counts rows, including rows where some columns are NULL.", true, "COUNT(*) counts rows. COUNT(column) counts only rows where that column isn't NULL.", "sql-101"),
+    match("Match the function to the question.", [["COUNT(*)", "How many rows?"], ["SUM(amount)", "How much in total?"], ["AVG(amount)", "How much on average?"], ["MAX(closed_date)", "What is the latest date?"]], "Aggregates answer 'how many / how much' questions in one row.", "sql-101"),
+    mcq("What does `AS` do in `SELECT SUM(amount) AS total`?", ["Converts to text", "Names the result column 'total'", "Sorts by total", "Filters to totals"], 1, "AS gives a column (or table) an alias. Graders and dashboards read that name.", undefined, "sql-101"),
+  ]),
+  lesson("u0-l4", 0, "GROUP BY and HAVING", [
+    concept(
+      "One row per group",
+      "`SELECT stage, COUNT(*) AS n FROM deals GROUP BY stage` gives one row per stage. Every column in SELECT must be either grouped or aggregated. `HAVING` filters *after* grouping (`HAVING COUNT(*) > 10`); `WHERE` filters rows *before* grouping.",
+      "sql-101"
+    ),
+    fill("SELECT owner, SUM(amount) FROM deals ___ owner;", ["GROUP BY", "ORDER BY", "SPLIT BY", "EACH"], "GROUP BY", "GROUP BY owner makes one row per owner; SUM adds within each group.", "sql-101"),
+    mcq("Which filters groups, not rows?", ["WHERE", "HAVING", "LIMIT", "ORDER BY"], 1, "HAVING runs after GROUP BY, so it can use aggregates like COUNT(*). WHERE can't.", undefined, "sql-101"),
+    tf("`SELECT owner, amount FROM deals GROUP BY owner` is a valid, well-defined query.", false, "amount is neither grouped nor aggregated, so which amount would each row show? Aggregate it (SUM, MAX) or group by it.", "sql-101"),
+    order("Order of operations for a grouped query.", ["FROM: read the table", "WHERE: keep matching rows", "GROUP BY: collapse into groups", "HAVING: keep matching groups"], "Rows first, then groups. That's why WHERE can't see COUNT(*) but HAVING can.", "sql-101"),
+    mcq("Sources with more than 50 deals?", ["SELECT source FROM deals WHERE COUNT(*) > 50;", "SELECT source, COUNT(*) FROM deals GROUP BY source HAVING COUNT(*) > 50;", "SELECT source, COUNT(*) FROM deals HAVING COUNT(*) > 50;", "SELECT source FROM deals GROUP BY COUNT(*) > 50;"], 1, "Group by source, then HAVING on the group count. Option A fails because WHERE runs before any counting.", undefined, "sql-101"),
+  ]),
+  lesson("u0-l5", 0, "JOINs", [
+    concept(
+      "Combining two tables",
+      "`FROM deals d JOIN accounts a ON a.account_id = d.account_id` pairs each deal with its account through the shared key. **JOIN** (inner) keeps only rows that match on both sides; **LEFT JOIN** keeps every row from the left table and fills the right side with NULL when there's no match. Aliases (`d`, `a`) keep column names short and unambiguous.",
+      "sql-101"
+    ),
+    fill("FROM deals d JOIN accounts a ___ a.account_id = d.account_id", ["ON", "WHERE", "WITH", "USING KEY"], "ON", "ON states how the rows pair up. Without it, every deal would pair with every account.", "sql-101"),
+    mcq("You want every account, even those with no deals yet. Which join?", ["JOIN", "LEFT JOIN from accounts", "INNER JOIN", "CROSS JOIN"], 1, "LEFT JOIN keeps all rows from the left table (accounts) and NULLs where no deal matches.", undefined, "sql-101"),
+    tf("An inner JOIN drops accounts that have no deals.", true, "Inner joins keep only matches. That's fine for 'won value by account' and wrong for 'accounts with no activity'.", "sql-101"),
+    match("Match the join to what it keeps.", [["JOIN", "Only rows that match on both sides"], ["LEFT JOIN", "All left rows, NULL where no match"], ["CROSS JOIN", "Every combination"]], "Pick the join by asking: which table's rows must all survive?", "sql-101"),
+    mcq("Why write `d.amount` instead of `amount` after a join?", ["It's faster", "Both tables might have a column with that name; the alias says which one", "SQL requires it", "To sort"], 1, "Qualifying columns avoids 'ambiguous column' errors and makes the query readable.", undefined, "sql-101"),
+  ]),
+  lesson("u0-l6", 0, "Python: variables, lists, dicts", [
+    concept(
+      "Three containers you'll use constantly",
+      "`x = 5` binds a name. A **list** is ordered: `stages = ['qualified', 'proposal']`, `stages[0]` is the first item, `len(stages)` its size. A **dict** maps keys to values: `deal = {'id': 'D-1', 'amount': 5000}`, `deal['amount']`. `round(2/3, 4)` gives 0.6667.",
+      "python-pandas-101"
+    ),
+    fill("stages = ['qualified', 'proposal']  →  stages[___] is 'qualified'", ["0", "1", "-1", "first"], "0", "Python counts from zero. stages[-1] is the last item.", "python-pandas-101"),
+    mcq("`deal = {'id': 'D-1', 'amount': 5000}`. How do you read the amount?", ["deal.amount()", "deal['amount']", "deal[1]", "deal(amount)"], 1, "Dicts are read by key in square brackets. Position doesn't apply to dicts.", undefined, "python-pandas-101"),
+    tf("`len(stages)` returns the number of items in the list.", true, "len works on lists, strings, dicts, and DataFrames (rows).", "python-pandas-101"),
+    match("Match the expression to its value.", [["round(2/3, 2)", "0.67"], ["len(['a', 'b', 'c'])", "3"], ["'won' == 'won'", "True"], ["2 ** 3", "8"]], "** is a power; == compares; round(x, n) keeps n decimals; len counts items.", "python-pandas-101"),
+    mcq("Which line builds a list of the won stages only?", ["won = [s for s in stages if s == 'closed_won']", "won = stages.where('closed_won')", "won = stages['closed_won']", "won = filter stages == 'closed_won'"], 0, "A list comprehension: [item for item in list if condition]. You'll rarely need it with pandas, but it's the same idea as a filter.", undefined, "python-pandas-101"),
+  ]),
+  lesson("u0-l7", 0, "pandas: columns and rows", [
+    concept(
+      "A DataFrame is a table",
+      "`deals` is a DataFrame. `deals['amount']` is one column (a Series). `deals[deals['stage'] == 'closed_won']` keeps rows where the condition is True. `deals.head()` shows the first rows; `len(deals)` counts them; `deals['amount'].sum()` adds a column up.",
+      "python-pandas-101"
+    ),
+    fill("won = deals[deals['stage'] ___ 'closed_won']", ["==", "=", "is", "equals"], "==", "Double equals compares. A single = would try to assign and fail.", "python-pandas-101"),
+    mcq("Total amount of won deals?", ["deals['amount'].sum() where stage == 'closed_won'", "deals[deals['stage'] == 'closed_won']['amount'].sum()", "sum(deals.amount == 'closed_won')", "deals.sum('amount', 'closed_won')"], 1, "Filter rows first, pick the column, then sum. Read it left to right.", undefined, "python-pandas-101"),
+    tf("`deals['stage'] == 'closed_won'` returns True or False for every row.", true, "It returns a boolean Series. Putting it inside deals[...] keeps the True rows; .sum() on it counts them.", "python-pandas-101"),
+    match("Match the pandas expression to SQL.", [["deals[deals['region'] == 'AMER']", "WHERE region = 'AMER'"], ["deals[['deal_id', 'amount']]", "SELECT deal_id, amount"], ["deals.sort_values('amount', ascending=False)", "ORDER BY amount DESC"], ["deals.head(5)", "LIMIT 5"]], "Same ideas, different spelling. Learn one and you've learned both.", "python-pandas-101"),
+    mcq("Two conditions: AMER and amount above 50,000.", ["deals[deals['region'] == 'AMER' and deals['amount'] > 50000]", "deals[(deals['region'] == 'AMER') & (deals['amount'] > 50000)]", "deals[deals['region'] == 'AMER' & deals['amount'] > 50000]", "deals.where('AMER', 50000)"], 1, "Use & (and) or | (or) with parentheses around each condition. Plain 'and' doesn't work on Series.", undefined, "python-pandas-101"),
+  ]),
+  lesson("u0-l8", 0, "pandas: groupby, sort, merge", [
+    concept(
+      "GROUP BY, ORDER BY, and JOIN in pandas",
+      "`deals.groupby('owner')['amount'].sum()` is GROUP BY owner with SUM. `.sort_values(ascending=False)` orders it. `deals.merge(accounts, on='account_id')` is an inner JOIN on the shared key; add `how='left'` for a LEFT JOIN. `.to_dict('records')` turns rows into a list of dicts.",
+      "python-pandas-101"
+    ),
+    fill("deals.groupby('stage')['deal_id'].___()", ["count", "total", "length", "rows"], "count", "count per group is COUNT(*) per stage. sum, mean, min, max work the same way.", "python-pandas-101"),
+    mcq("Join deals to accounts on account_id, keeping only matches.", ["deals.join(accounts)", "deals.merge(accounts, on='account_id')", "deals + accounts", "pd.concat([deals, accounts])"], 1, "merge with on= is the JOIN. concat stacks tables; join is index-based and rarely what you want here.", undefined, "python-pandas-101"),
+    tf("`how='left'` in merge keeps every row from the left DataFrame.", true, "Exactly like SQL's LEFT JOIN, with NaN where the right side has no match.", "python-pandas-101"),
+    match("Match the pandas call to the SQL clause.", [["groupby('owner')['amount'].sum()", "GROUP BY owner, SUM(amount)"], ["sort_values('amount')", "ORDER BY amount"], ["merge(accounts, on='account_id')", "JOIN accounts ON account_id"], ["to_dict('records')", "Rows as a list of dicts"]], "The same four moves you use in SQL, as method calls.", "python-pandas-101"),
+    mcq("Won value per account name, biggest first?", ["deals.merge(accounts, on='account_id').groupby('account_name')['amount'].sum().sort_values(ascending=False)", "deals.groupby('account_name').sum()", "accounts.merge(deals).sum('amount')", "deals.sort_values('account_name').groupby('amount')"], 0, "Merge to get the name, group by it, sum the amount, sort descending. Filter to won deals first for the real metric.", undefined, "python-pandas-101"),
+  ]),
+];
 
 // ======================= UNIT 1 · The Bullseye =======================
 const u1: Lesson[] = [
@@ -421,14 +521,26 @@ const UNIT_COLORS: Record<ChapterNumber, string> = {
 
 const lessonsByUnit: Record<ChapterNumber, Lesson[]> = { 1: u1, 2: u2, 3: u3, 4: u4, 5: u5, 6: u6 };
 
-export const units: Unit[] = chapters.map((c) => ({
-  number: c.number,
-  title: c.title,
-  week: c.week,
-  tagline: c.tagline,
-  color: UNIT_COLORS[c.number],
-  lessons: lessonsByUnit[c.number],
-}));
+const unit0: Unit = {
+  number: 0,
+  title: "SQL & Python 101",
+  week: "Level 0 · The basics",
+  tagline: "The formulas every lab uses. Start here if SELECT or a DataFrame is new to you.",
+  color: "#0f766e",
+  lessons: u0,
+};
+
+export const units: Unit[] = [
+  unit0,
+  ...chapters.map((c) => ({
+    number: c.number,
+    title: c.title,
+    week: c.week,
+    tagline: c.tagline,
+    color: UNIT_COLORS[c.number],
+    lessons: lessonsByUnit[c.number],
+  })),
+];
 
 export const allLessons: Lesson[] = units.flatMap((u) => u.lessons);
 
@@ -436,6 +548,6 @@ const byId = new Map(allLessons.map((l) => [l.id, l]));
 export function getLesson(id: string): Lesson | undefined {
   return byId.get(id);
 }
-export function lessonsForUnit(n: ChapterNumber): Lesson[] {
-  return lessonsByUnit[n];
+export function lessonsForUnit(n: UnitNumber): Lesson[] {
+  return n === 0 ? u0 : lessonsByUnit[n];
 }

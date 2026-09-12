@@ -1,4 +1,13 @@
 {
+  "py0-count-rows": 420,
+  "py0-filter-sum": 479000,
+  "py0-count-by-stage": {
+    "closed_lost": 169,
+    "closed_won": 198,
+    "negotiation": 18,
+    "proposal": 23,
+    "qualified": 12
+  },
   "py-count-closed-won": 198,
   "py-deals-closed-value": 12284500,
   "py-revenue-generated": 14660100,

@@ -518,4 +518,100 @@ CTE, *then* apply windows. Running totals and moving averages on the wrong
 grain look plausible and are wrong.`,
     source: "Synthesized for DPM Lab.",
   },
+  {
+    slug: "sql-101",
+    title: "SQL 101: the formulas",
+    category: "definition",
+    tags: ["sql", "basics", "level-0"],
+    summary:
+      "The clause order, filters, aggregates, GROUP BY/HAVING, and joins that every exercise in this app is built from.",
+    body: `## The sentence
+\`\`\`sql
+SELECT column_a, column_b        -- which columns
+FROM table_name                  -- which table
+WHERE condition                  -- which rows
+GROUP BY column_a                -- one row per value
+HAVING COUNT(*) > 1              -- filter groups
+ORDER BY column_b DESC           -- sort
+LIMIT 10;                        -- keep n rows
+\`\`\`
+Clauses are optional but their order is fixed. Text goes in single quotes;
+numbers don't. \`;\` ends the statement.
+
+## Filters
+| Want | Write |
+|---|---|
+| both | \`a = 1 AND b = 2\` |
+| either | \`a = 1 OR b = 2\` (use parentheses with AND) |
+| any of a list | \`stage IN ('closed_won', 'closed_lost')\` |
+| a range | \`amount BETWEEN 1000 AND 5000\` |
+| not equal | \`stage <> 'closed_lost'\` |
+| missing | \`closed_date IS NULL\` (never \`= NULL\`) |
+| pattern | \`email LIKE '%@northwind%'\` |
+
+## Aggregates
+\`COUNT(*)\`, \`COUNT(col)\` (non-NULL only), \`SUM\`, \`AVG\`, \`MIN\`, \`MAX\`.
+Name the result: \`SUM(amount) AS total\`. In SQLite, \`SUM(stage = 'closed_won')\`
+counts rows where the comparison is true, and \`1.0 * a / b\` forces decimal
+division.
+
+## GROUP BY / HAVING
+Every SELECT column must be grouped or aggregated. \`WHERE\` filters rows
+before grouping; \`HAVING\` filters groups after. The duplicate idiom:
+\`GROUP BY key HAVING COUNT(*) > 1\`.
+
+## Joins
+\`\`\`sql
+FROM deals d
+JOIN accounts a ON a.account_id = d.account_id        -- only matches
+LEFT JOIN transactions t ON t.deal_id = d.deal_id     -- all deals, NULL if none
+\`\`\`
+Qualify columns after a join (\`d.amount\`). Conditions on the right-hand table
+of a LEFT JOIN belong in \`ON\`, not \`WHERE\`.
+
+## Dates and text (SQLite)
+\`substr(created_date, 1, 7)\` → month; \`strftime('%Y-%W', ts)\` → week;
+\`julianday(b) - julianday(a)\` → days between.`,
+    source: "Synthesized for DPM Lab (Level 0).",
+  },
+  {
+    slug: "python-pandas-101",
+    title: "Python & pandas 101: the formulas",
+    category: "definition",
+    tags: ["python", "pandas", "basics", "level-0"],
+    summary:
+      "Lists, dicts, and the DataFrame moves that mirror SQL: select, filter, group, sort, merge.",
+    body: `## Python in one breath
+\`\`\`python
+x = 5                                   # variable
+stages = ['qualified', 'proposal']      # list; stages[0], len(stages)
+deal = {'id': 'D-1', 'amount': 5000}    # dict; deal['amount']
+round(2 / 3, 4)                         # 0.6667
+[s for s in stages if s != 'proposal']  # list comprehension (a filter)
+\`\`\`
+\`==\` compares, \`=\` assigns. \`//\` is integer division. Indentation defines
+blocks.
+
+## pandas ↔ SQL
+| SQL | pandas |
+|---|---|
+| \`SELECT deal_id, amount FROM deals\` | \`deals[['deal_id', 'amount']]\` |
+| \`WHERE stage = 'closed_won'\` | \`deals[deals['stage'] == 'closed_won']\` |
+| \`WHERE a AND b\` | \`deals[(cond_a) & (cond_b)]\` — parentheses required |
+| \`WHERE stage IN (...)\` | \`deals[deals['stage'].isin([...])]\` |
+| \`COUNT(*)\` | \`len(deals)\` |
+| \`SUM(amount)\` | \`deals['amount'].sum()\` |
+| \`GROUP BY owner, SUM(amount)\` | \`deals.groupby('owner')['amount'].sum()\` |
+| \`ORDER BY amount DESC\` | \`.sort_values('amount', ascending=False)\` |
+| \`LIMIT 5\` | \`.head(5)\` |
+| \`JOIN accounts ON account_id\` | \`deals.merge(accounts, on='account_id')\` |
+| \`LEFT JOIN\` | \`.merge(..., how='left')\` |
+| several aggregates | \`.agg(total=('amount', 'sum'), n=('deal_id', 'count'))\` |
+
+## Getting an answer out
+\`result = df.to_dict('records')\` for rows; \`int(x)\` / \`float(x)\` to turn a
+numpy number into a plain one; \`(deals['stage'] == 'closed_won').sum()\`
+counts True values, the pandas CASE WHEN.`,
+    source: "Synthesized for DPM Lab (Level 0).",
+  },
 ];

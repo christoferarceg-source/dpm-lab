@@ -10,6 +10,43 @@ import type { PythonExercise } from "@/lib/types";
 // content/expected-python.json. Never hand-edit that JSON.
 
 export const pythonExercises: PythonExercise[] = [
+  // =================== Level 0 · Lab 0 ===================
+  {
+    slug: "py0-count-rows",
+    chapter: 0,
+    title: "How many deals are there?",
+    difficulty: "warmup",
+    prompt: `\`deals\` is a DataFrame. Set \`result\` to the number of rows in it.`,
+    starterCode: `result = None  # TODO: len(...)`,
+    solution: `result = len(deals)`,
+    dpmConnection: { text: "len() on a DataFrame is COUNT(*). Knowing the row count is the sanity check before any other number.", kbSlug: "python-pandas-101" },
+    hint: "len(deals)",
+  },
+  {
+    slug: "py0-filter-sum",
+    chapter: 0,
+    title: "Total amount of qualified deals",
+    difficulty: "warmup",
+    prompt: `Keep the rows where \`stage == "qualified"\`, then set \`result\` to the sum of their \`amount\`.`,
+    starterCode: `qualified = deals[deals["stage"] == "qualified"]
+result = None  # TODO: sum of qualified["amount"]`,
+    solution: `qualified = deals[deals["stage"] == "qualified"]\nresult = int(qualified["amount"].sum())`,
+    dpmConnection: { text: "Filter, pick a column, aggregate: WHERE + SUM in pandas.", kbSlug: "python-pandas-101" },
+    hint: "qualified['amount'].sum()",
+  },
+  {
+    slug: "py0-count-by-stage",
+    chapter: 0,
+    title: "Deals per stage (groupby)",
+    difficulty: "warmup",
+    prompt: `Count deals per \`stage\`. Set \`result\` to a **dict** mapping each stage to its count.`,
+    starterCode: `counts = deals.groupby("stage")["deal_id"].count()
+result = None  # TODO: counts.to_dict()`,
+    solution: `counts = deals.groupby("stage")["deal_id"].count()\nresult = {k: int(v) for k, v in counts.to_dict().items()}`,
+    dpmConnection: { text: "groupby + count is GROUP BY + COUNT(*). to_dict() hands the result back as plain keys and values.", kbSlug: "python-pandas-101" },
+    hint: "counts.to_dict() — wrap values in int() if you build it by hand.",
+  },
+
   {
     slug: "py-count-closed-won",
     chapter: 1,

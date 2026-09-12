@@ -178,4 +178,28 @@ export const flashcards: Flashcard[] = [
     front: "Rule of thumb for running totals and moving averages?",
     back: "Grain first, window second: aggregate to the reporting grain in a CTE, then apply SUM/AVG OVER.",
   },
+  {
+    id: "fc-sql-clause-order",
+    kbSlug: "sql-101",
+    front: "SQL clause order?",
+    back: "SELECT → FROM → WHERE → GROUP BY → HAVING → ORDER BY → LIMIT.",
+  },
+  {
+    id: "fc-where-vs-having",
+    kbSlug: "sql-101",
+    front: "WHERE vs HAVING?",
+    back: "WHERE filters rows before grouping; HAVING filters groups after, so only HAVING can use COUNT(*).",
+  },
+  {
+    id: "fc-pandas-filter",
+    kbSlug: "python-pandas-101",
+    front: "pandas equivalent of WHERE stage = 'closed_won'?",
+    back: "deals[deals['stage'] == 'closed_won'] — a boolean Series inside square brackets keeps the True rows.",
+  },
+  {
+    id: "fc-pandas-merge",
+    kbSlug: "python-pandas-101",
+    front: "pandas equivalent of JOIN … ON account_id, and of LEFT JOIN?",
+    back: "deals.merge(accounts, on='account_id'); add how='left' for a LEFT JOIN.",
+  },
 ];

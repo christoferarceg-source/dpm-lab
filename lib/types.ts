@@ -21,12 +21,15 @@ export type DpmConnection = {
   kbSlug: string;
 };
 
-/** 1–6, the Playbook week the exercise belongs to. */
+/** 1–6, the Playbook week a story chapter belongs to. */
 export type ChapterNumber = 1 | 2 | 3 | 4 | 5 | 6;
+/** Units on the learning path: Level 0 (SQL & Python 101) plus the six story chapters. */
+export type UnitNumber = 0 | ChapterNumber;
 
 export type SqlExercise = {
   slug: string;
-  chapter: ChapterNumber;
+  /** Unit the exercise belongs to (0 = Level 0 basics). */
+  chapter: UnitNumber;
   title: string;
   difficulty: Difficulty;
   prompt: string; // markdown
@@ -46,7 +49,7 @@ export type SqlExpected = {
 
 export type PythonExercise = {
   slug: string;
-  chapter: ChapterNumber;
+  chapter: UnitNumber;
   title: string;
   difficulty: Difficulty;
   prompt: string;
@@ -91,13 +94,13 @@ export type LessonItem = ConceptItem | McqItem | TrueFalseItem | FillItem | Matc
 
 export type Lesson = {
   id: string;
-  unit: ChapterNumber;
+  unit: UnitNumber;
   title: string;
   items: LessonItem[];
 };
 
 export type Unit = {
-  number: ChapterNumber;
+  number: UnitNumber;
   title: string;
   week: string;
   tagline: string;
