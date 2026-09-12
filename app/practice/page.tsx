@@ -5,6 +5,7 @@ import { units } from "@/content/lessons";
 import { sqlExercisesForChapter } from "@/content/exercises-sql";
 import { pythonExercisesForChapter } from "@/content/exercises-python";
 import { useProgress, type ExerciseStatus } from "@/lib/progress-store";
+import { PageHeader } from "@/components/PageHeader";
 
 function Dot({ status }: { status: ExerciseStatus }) {
   const cls = status === "solved" ? "bg-success" : status === "attempted" ? "bg-warn" : "bg-border";
@@ -17,20 +18,24 @@ export default function PracticeIndex() {
 
   return (
     <div className="space-y-6">
-      <div>
-        <h1 className="text-xl sm:text-2xl font-semibold tracking-tight">Labs</h1>
-        <p className="text-sm text-muted mt-1">
-          Real SQLite and pandas in your browser, on Meridian&apos;s data. Each solved exercise earns 20 XP. Open the{" "}
-          <Link href="/practice/sql" className="text-accent underline underline-offset-2">
-            SQL workspace
-          </Link>{" "}
-          or the{" "}
-          <Link href="/practice/python" className="text-accent underline underline-offset-2">
-            Python workspace
-          </Link>{" "}
-          directly, or pick an exercise below.
-        </p>
-      </div>
+      <PageHeader
+        kicker="Practice"
+        title="Labs"
+        description={
+          <>
+            Real SQLite and pandas in your browser, on Meridian&apos;s data. Each solved exercise earns 20 XP. Pick an
+            exercise below, or open the{" "}
+            <Link href="/practice/sql" className="text-accent underline underline-offset-2">
+              SQL workspace
+            </Link>{" "}
+            or{" "}
+            <Link href="/practice/python" className="text-accent underline underline-offset-2">
+              Python workspace
+            </Link>{" "}
+            directly.
+          </>
+        }
+      />
 
       {units.map((u) => {
         const sql = sqlExercisesForChapter(u.number);

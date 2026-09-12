@@ -7,6 +7,7 @@ import { units } from "@/content/lessons";
 import { allUnitProgress, totals } from "@/lib/chapter-progress";
 import { dueCards, useProgress } from "@/lib/progress-store";
 import { computeXp, levelFor, levelTitle, XP_LAB_EXERCISE, XP_LESSON, XP_PERFECT_BONUS } from "@/lib/xp";
+import { PageHeader } from "@/components/PageHeader";
 
 function Stat({ label, value, sub }: { label: string; value: string; sub?: string }) {
   return (
@@ -29,6 +30,7 @@ export default function ProfilePage() {
 
   return (
     <div className="space-y-6 max-w-2xl">
+      <PageHeader kicker="Profile" title="Your progress" description="XP is earned from lessons and labs; levels come every 100 XP." />
       <div className="bg-surface border border-border rounded-2xl p-5 flex items-center gap-4">
         <div className="w-16 h-16 rounded-full bg-accent text-accent-fg flex items-center justify-center text-2xl font-semibold shrink-0 tabular-nums">
           {hydrated ? lvl.level : "–"}

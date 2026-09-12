@@ -52,6 +52,8 @@ export type ProgressData = {
   srs: Record<string, SrsState>;
   /** Completed micro-lessons by lesson id. */
   lessons: Record<string, LessonProgress>;
+  /** Library entries opened, by slug → ISO timestamp of first read. */
+  reads: Record<string, string>;
   streak: { current: number; lastActiveDate: string | null };
 };
 
@@ -63,6 +65,7 @@ export function emptyProgress(): ProgressData {
     attempts: [],
     srs: {},
     lessons: {},
+    reads: {},
     streak: { current: 0, lastActiveDate: null },
   };
 }
@@ -157,6 +160,11 @@ export function applyLessonComplete(data: ProgressData, lessonId: string, accura
   });
 }
 
+export function applyRead(data: ProgressData, slug: string): ProgressData {
+  if (data.reads[slug]) return data;
+  return { ...data, reads: { ...data.reads, [slug]: new Date().toISOString() } };
+}
+
 export function dueCards(data: ProgressData, cards: Flashcard[]): Flashcard[] {
   return cards.filter((c) => isDue(data.srs[c.id]));
 }
@@ -230,7 +238,11 @@ export function useProgress() {
     [update]
   );
 
+  const recordRead = useCallback((slug: string) => {
+    if (!getSnapshot().reads[slug]) update((d) => applyRead(d, slug));
+  }, [update]);
+
   const reset = useCallback(() => update(() => emptyProgress()), [update]);
 
-  return { data, hydrated, recordAttempt, recordReview, recordLessonComplete, reset };
+  return { data, hydrated, recordAttempt, recordReview, recordLessonComplete, recordRead, reset };
 }

@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { useState } from "react";
 import { units } from "@/content/lessons";
 import { getChapter } from "@/content/story";
 import { sqlExercisesForChapter } from "@/content/exercises-sql";
@@ -40,6 +41,7 @@ export function LearnPath() {
   const xp = computeXp(data);
   const lvl = levelFor(xp.total);
 
+  const [expanded, setExpanded] = useState<Record<number, boolean>>({});
   const nextUnit = next ? units.find((u) => u.number === next.unit) : null;
   const nextIndex = next && nextUnit ? nextUnit.lessons.findIndex((l) => l.id === next.id) + 1 : 0;
 
@@ -113,9 +115,20 @@ export function LearnPath() {
                 <p className="text-xs text-muted tabular-nums shrink-0">
                   {p.lessonsDone}/{p.lessonsTotal} lessons · Lab {p.labDone}/{p.labTotal}
                 </p>
+                {p.complete && (
+                  <button
+                    onClick={() => setExpanded((e) => ({ ...e, [unit.number]: !e[unit.number] }))}
+                    className="text-xs text-accent underline underline-offset-2 shrink-0"
+                  >
+                    {expanded[unit.number] ? "Hide lessons" : "Show lessons"}
+                  </button>
+                )}
               </div>
             )}
 
+            {hydrated && p.complete && !expanded[unit.number] ? (
+              <p className="text-center text-sm text-muted py-2">Unit complete{p.labDone === p.labTotal ? ", lab included" : `, lab ${p.labDone}/${p.labTotal}`}. ★</p>
+            ) : (
             <ol className="flex flex-col items-center gap-11 py-4 pb-10">
               {unit.lessons.map((lesson, li) => {
                 const done = !!data.lessons[lesson.id];
@@ -172,6 +185,7 @@ export function LearnPath() {
                 </p>
               </li>
             </ol>
+            )}
           </section>
         );
       })}

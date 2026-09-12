@@ -34,6 +34,7 @@ import { unitProgress, currentUnit, nextLesson } from "../lib/chapter-progress";
 import { computeXp, levelFor } from "../lib/xp";
 import { shuffledSteps, isCorrect, initialAnswer } from "../components/lesson-items";
 import type { SqlExpected } from "../lib/types";
+import { allParts, libraryParts, neighbours } from "../lib/library";
 
 let failures = 0;
 function check(name: string, ok: boolean, detail = "") {
@@ -79,6 +80,11 @@ for (const c of chapters) {
   check(`chapter ${c.number}: has lessons and SQL`, units.some((u) => u.number === c.number && u.lessons.length > 0) && sqlExercises.some((e) => e.chapter === c.number));
 }
 check("flashcards point at real KB entries", flashcards.every((f) => kbSlugs.has(f.kbSlug)));
+// library reading path
+check("library parts reference real entries", libraryParts.every((p) => p.entries.every((e) => kbSlugs.has(e))), libraryParts.flatMap((p) => p.entries.filter((e) => !kbSlugs.has(e))).join(","));
+check("every KB entry is on the reading path (no 'More' part)", allParts.length === libraryParts.length, allParts.map((p) => p.slug).join(","));
+check("library path has no duplicates", new Set(libraryParts.flatMap((p) => p.entries)).size === libraryParts.reduce((n, p) => n + p.entries.length, 0));
+check("library neighbours chain", !neighbours(libraryParts[0].entries[0]).prev && !!neighbours(libraryParts[0].entries[0]).next);
 check("unique slugs/ids", new Set([...sqlExercises.map((e) => e.slug), ...pythonExercises.map((e) => e.slug), ...allLessons.map((l) => l.id), ...flashcards.map((f) => f.id)]).size === sqlExercises.length + pythonExercises.length + allLessons.length + flashcards.length);
 
 // ---------- SQL ----------

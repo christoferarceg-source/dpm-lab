@@ -2,80 +2,124 @@
 
 import Link from "next/link";
 import { useMemo, useState } from "react";
+import { PageHeader } from "@/components/PageHeader";
 import { kbEntries } from "@/content/kb";
-import { CATEGORY_LABELS } from "@/lib/kb";
-import type { KbCategory } from "@/lib/types";
+import { allParts, libraryEntry } from "@/lib/library";
+import { useProgress } from "@/lib/progress-store";
 
-const CATEGORIES: (KbCategory | "all")[] = ["all", "framework", "definition", "case-study", "industry-context"];
-
-export default function KbIndex() {
+export default function LibraryPage() {
+  const { data, hydrated } = useProgress();
   const [q, setQ] = useState("");
-  const [cat, setCat] = useState<KbCategory | "all">("all");
+  const needle = q.trim().toLowerCase();
 
-  const list = useMemo(() => {
-    const needle = q.trim().toLowerCase();
-    return kbEntries.filter((e) => {
-      if (cat !== "all" && e.category !== cat) return false;
-      if (!needle) return true;
-      return (
+  const matches = useMemo(() => {
+    if (!needle) return null;
+    return kbEntries.filter(
+      (e) =>
         e.title.toLowerCase().includes(needle) ||
         e.summary.toLowerCase().includes(needle) ||
         e.tags.some((t) => t.includes(needle)) ||
         e.body.toLowerCase().includes(needle)
-      );
-    });
-  }, [q, cat]);
+    );
+  }, [needle]);
+
+  const readCount = hydrated ? kbEntries.filter((e) => data.reads[e.slug]).length : 0;
 
   return (
-    <div className="space-y-6">
-      <div>
-        <h1 className="text-2xl font-semibold tracking-tight">Knowledge Base</h1>
-        <p className="text-muted mt-1">
-          {kbEntries.length} entries, seeded from your PRD, the 6-Week Playbook, State of Data Products Q2 2026, and
-          the Big Book of Data Science.
-        </p>
-      </div>
+    <div className="space-y-8">
+      <PageHeader
+        kicker="Library"
+        title="The reading path"
+        description={
+          <>
+            Everything the lessons and labs point back to, in the order it&apos;s worth reading. Four parts, about an hour
+            end to end. Dip in from a lesson, or read it straight through.
+          </>
+        }
+        aside={
+          hydrated ? (
+            <div className="text-right">
+              <p className="text-2xl font-semibold tabular-nums">
+                {readCount}
+                <span className="text-muted text-base">/{kbEntries.length}</span>
+              </p>
+              <p className="text-xs text-muted">read</p>
+            </div>
+          ) : undefined
+        }
+      />
 
-      <div className="flex flex-col sm:flex-row gap-3">
-        <input
-          value={q}
-          onChange={(e) => setQ(e.target.value)}
-          placeholder="Search titles, tags, body…"
-          className="flex-1 px-3 py-2 rounded-md border border-border bg-surface text-sm focus:outline-none focus:ring-2 focus:ring-accent-soft"
-        />
-        <div className="flex gap-1 overflow-x-auto">
-          {CATEGORIES.map((c) => (
-            <button
-              key={c}
-              onClick={() => setCat(c)}
-              className={`px-3 py-1.5 rounded-md text-sm whitespace-nowrap ${
-                cat === c ? "bg-accent-soft text-accent font-medium" : "text-muted hover:bg-surface-2"
-              }`}
-            >
-              {c === "all" ? "All" : CATEGORY_LABELS[c]}
-            </button>
+      <input
+        value={q}
+        onChange={(e) => setQ(e.target.value)}
+        placeholder="Search the library…"
+        className="w-full px-4 py-2.5 rounded-xl border-2 border-border bg-surface text-sm focus:outline-none focus:border-accent"
+      />
+
+      {matches ? (
+        <ul className="grid gap-3 sm:grid-cols-2">
+          {matches.map((e) => (
+            <li key={e.slug}>
+              <EntryCard slug={e.slug} read={hydrated && !!data.reads[e.slug]} />
+            </li>
           ))}
-        </div>
-      </div>
-
-      <ul className="grid gap-3 sm:grid-cols-2">
-        {list.map((e) => (
-          <li key={e.slug}>
-            <Link
-              href={`/kb/${e.slug}`}
-              className="block h-full bg-surface border border-border rounded-xl p-4 hover:border-accent transition-colors"
-            >
-              <div className="flex items-center gap-2 text-xs text-muted">
-                <span className="px-2 py-0.5 rounded-full bg-surface-2">{CATEGORY_LABELS[e.category]}</span>
+          {matches.length === 0 && <li className="text-sm text-muted">Nothing matches “{q}”.</li>}
+        </ul>
+      ) : (
+        allParts.map((part) => {
+          const done = hydrated ? part.entries.filter((s) => data.reads[s]).length : 0;
+          return (
+            <section key={part.slug} className="space-y-4">
+              <div className="grid gap-3 sm:grid-cols-[minmax(0,1fr)_auto] sm:items-end">
+                <div>
+                  <p className="text-[0.7rem] uppercase tracking-wide text-accent font-semibold">
+                    Part {part.number} · {part.kicker}
+                  </p>
+                  <h2 className="text-xl font-semibold tracking-tight">{part.title}</h2>
+                  <p className="text-sm text-muted mt-1.5 max-w-3xl">{part.intro}</p>
+                </div>
+                {hydrated && (
+                  <p className="text-xs text-muted tabular-nums sm:text-right">
+                    {done}/{part.entries.length} read
+                  </p>
+                )}
               </div>
-              <h2 className="font-semibold mt-2">{e.title}</h2>
-              <p className="text-sm text-muted mt-1">{e.summary}</p>
-              <p className="text-xs text-muted mt-3">{e.tags.map((t) => `#${t}`).join("  ")}</p>
-            </Link>
-          </li>
-        ))}
-        {list.length === 0 && <li className="text-sm text-muted">No entries match.</li>}
-      </ul>
+              <ol className="grid gap-3 sm:grid-cols-2">
+                {part.entries.map((slug) => (
+                  <li key={slug}>
+                    <EntryCard slug={slug} read={hydrated && !!data.reads[slug]} />
+                  </li>
+                ))}
+              </ol>
+            </section>
+          );
+        })
+      )}
     </div>
+  );
+}
+
+function EntryCard({ slug, read }: { slug: string; read: boolean }) {
+  const ix = libraryEntry(slug);
+  if (!ix) return null;
+  const { entry, position, readMinutes } = ix;
+  return (
+    <Link
+      href={`/kb/${slug}`}
+      className={`flex gap-3 h-full bg-surface border rounded-2xl p-4 hover:border-accent transition-colors ${read ? "border-success/40" : "border-border"}`}
+    >
+      <span
+        className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-semibold shrink-0 ${
+          read ? "bg-success text-white" : "bg-surface-2 text-muted"
+        }`}
+      >
+        {read ? "✓" : position}
+      </span>
+      <span className="min-w-0">
+        <span className="block font-semibold leading-snug">{entry.title}</span>
+        <span className="block text-sm text-muted mt-1 line-clamp-2">{entry.summary}</span>
+        <span className="block text-xs text-muted mt-2">{readMinutes} min read</span>
+      </span>
+    </Link>
   );
 }
