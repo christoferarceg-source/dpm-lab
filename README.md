@@ -1,5 +1,7 @@
 # DPM Lab
 
+**Live:** https://christoferarceg-source.github.io/dpm-lab/
+
 A personal learning tool for **Data Product Management**: a knowledge base
 that feeds hands-on practice, so the frameworks you know and the hard skills
 you use (SQL, Python) stay connected to each other.
@@ -34,6 +36,15 @@ npm run verify:answers   # recompute every exercise's expected answer from the d
 npm run lint
 npm run build
 ```
+
+## Deploy (GitHub Pages)
+
+```bash
+npm run deploy       # static export with basePath /dpm-lab, pushed to the gh-pages branch
+```
+
+Pages serves the `gh-pages` branch. `npm run build:static` alone produces
+the export in `out/` if you want to inspect it first.
 
 ## Layout
 
