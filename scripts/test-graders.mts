@@ -138,10 +138,10 @@ check("deepEqual numeric string vs number", deepEqual("84000", 84000));
   const p1 = unitProgress(d, 1);
   check("unit 1 complete after 5 lessons; next is u2-l1", p1.complete && nextLesson(d)?.id === "u2-l1", JSON.stringify(p1));
   const xp1 = computeXp(d);
-  check("XP: 8 + 4 perfect (15) + 1 imperfect (10) = 190", xp1.total === 190, String(xp1.total));
+  check("XP: 8 + 5 perfect (15) + 1 imperfect (10) = 205", xp1.total === 205, String(xp1.total));
   for (const e of sqlExercises.filter((e) => e.chapter === 1)) d = applyAttempt(d, e.slug, "sql", "x", true);
   const xp2 = computeXp(d);
-  check("XP: +20 per lab exercise", xp2.total === 190 + 20 * sqlExercises.filter((e) => e.chapter === 1).length, String(xp2.total));
+  check("XP: +20 per lab exercise", xp2.total === 205 + 20 * sqlExercises.filter((e) => e.chapter === 1).length, String(xp2.total));
   check("level math", levelFor(150).level === 2 && levelFor(150).toNext === 50 && levelFor(0).level === 1);
   // grading helpers
   const mcqItem = allLessons[0].items.find((i) => i.kind === "mcq")!;

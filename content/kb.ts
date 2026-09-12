@@ -37,8 +37,20 @@ overall product lifecycle.
 | **Team dynamic** | "When can we ship?" | "How do we validate?" |
 
 The throughline: a Data PM's core job is **earning and protecting trust** in
-the data, not just shipping features.`,
-    source: "PRD - Data Product Management.pdf",
+the data, not just shipping features.
+
+## DPM vs. the roles it gets confused with
+| | Data Product Manager | The other role |
+|---|---|---|
+| **vs. Data Scientist / Analyst** | The strategic *what* and *why*: defines the vision for the data, creates reliable, well-structured data assets, makes analysis possible in the first place | The analytical *how*: the primary consumer of data products, analyzes data to extract insights, focuses on the specifics of a given analysis |
+| **vs. Data Engineer** | Defines the requirements: partners with engineering, decides what infrastructure needs to exist, prioritizes the engineering backlog | Builds the infrastructure: the primary builder of data systems, constructs pipelines and storage, implements the technical requirements |
+| **vs. Data Manager** | Strategic value creation: leverages data for new value, solves business problems with data products, drives tangible outcomes | Technical and operational oversight: administers systems, manages storage and maintenance, ensures operational compliance |
+
+A useful test: the analyst asks *what does the data say?*, the engineer asks
+*how do we move and store it?*, the data manager asks *is it maintained and
+compliant?*, and the Data PM asks *which data product should exist, for
+whom, and how will we know it's trusted?*`,
+    source: "PRD - Data Product Management.pdf; role comparison from the user's notes.",
   },
   {
     slug: "four-key-shifts",

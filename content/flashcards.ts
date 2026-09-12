@@ -202,4 +202,10 @@ export const flashcards: Flashcard[] = [
     front: "pandas equivalent of JOIN … ON account_id, and of LEFT JOIN?",
     back: "deals.merge(accounts, on='account_id'); add how='left' for a LEFT JOIN.",
   },
+  {
+    id: "fc-dpm-vs-roles",
+    kbSlug: "what-is-a-data-product-manager",
+    front: "One line each: how does a Data PM differ from an analyst, a data engineer, and a data manager?",
+    back: "Analyst: the analytical how (consumes data products). Engineer: builds the infrastructure. Data manager: operational oversight and compliance. Data PM: the strategic what and why; defines requirements and prioritizes the backlog.",
+  },
 ];

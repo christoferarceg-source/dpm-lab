@@ -131,7 +131,7 @@ const u1: Lesson[] = [
   lesson("u1-l1", 1, "What a Data PM actually owns", [
     concept(
       "The role",
-      "A **Data Product Manager** sits where data, technology, and business meet. Instead of a feature, the product is a warehouse, a pipeline, a metric, or a model. The core job is **earning and protecting trust** in the numbers people decide with.",
+      "A **Data Product Manager** sits where data, technology, and business meet. Instead of a feature, the product is a warehouse, a pipeline, a metric, or a model. The core job is **earning and protecting trust** in the numbers people decide with. Lesson 6 contrasts the DPM with analysts, engineers, and data managers.",
       "what-is-a-data-product-manager"
     ),
     mcq("Which of these is a *data product*?", ["A pricing page redesign", "A sales-funnel metric with a written definition and an owner", "A quarterly sales kickoff", "A new CRM login flow"], 1, "A metric with a definition, a pipeline behind it, and someone accountable for it is a data product. The others are software or events.", undefined, "what-is-a-data-product-manager"),
@@ -187,6 +187,18 @@ const u1: Lesson[] = [
     tf("A large data-platform migration automatically moves a company to Purpose-driven.", false, "That's Strategy-driven at best: a big initiative without a concrete bridge to end users and a measured purpose.", "data-product-maturity-stages"),
     mcq("What does \"Purpose-driven\" mean in practice?", ["Every dataset is documented", "Data initiatives are tied to a business purpose and measured by North Star, functional, and granular metrics", "The data team reports to the CEO", "All pipelines are real-time"], 1, "Purpose plus measurement. Documentation and org charts are inputs, not the definition.", undefined, "data-product-maturity-stages"),
     fill("The point of a 6-week proof of value is to demonstrate Purpose-driven on ___ slice, not to boil the ocean.", ["one narrow", "every", "the largest", "a random"], "one narrow", "One domain, one metric tree, one set of users. Scale comes after proof.", "data-product-maturity-stages"),
+  ]),
+  lesson("u1-l6", 1, "DPM vs. the other data roles", [
+    concept(
+      "Same data, four different jobs",
+      "**Analyst / scientist**: the analytical *how*; consumes data products to extract insights. **Data engineer**: builds the infrastructure, pipelines, and storage. **Data manager**: technical and operational oversight, maintenance, compliance. **Data PM**: the strategic *what* and *why*; defines requirements, prioritizes the engineering backlog, and creates data products that drive business outcomes.",
+      "what-is-a-data-product-manager"
+    ),
+    match("Match the role to its focus.", [["Data PM", "The strategic what and why"], ["Data scientist / analyst", "The analytical how"], ["Data engineer", "Building the infrastructure"], ["Data manager", "Technical and operational oversight"]], "Four roles, four questions. The Data PM decides which data products should exist and for whom.", "what-is-a-data-product-manager"),
+    mcq("Who is the *primary consumer* of a data product?", ["The Data PM", "The data scientist or analyst", "The data engineer", "The data manager"], 1, "Analysts and scientists consume data products to produce insights. The Data PM makes that analysis possible by ensuring reliable, well-structured data assets exist.", undefined, "what-is-a-data-product-manager"),
+    tf("The Data PM writes and owns the pipeline code.", false, "The engineer builds and implements. The Data PM defines what needs to be built and prioritizes the backlog, partnering closely with engineering.", "what-is-a-data-product-manager"),
+    fill("The Data PM defines the requirements; the data ___ builds the infrastructure.", ["engineer", "analyst", "manager", "scientist"], "engineer", "Engineers are the primary builders of data systems: pipelines, storage, and the technical implementation.", "what-is-a-data-product-manager"),
+    mcq("Storage costs are up and a retention policy must be enforced across systems. Whose job is that, primarily?", ["Data PM", "Data manager", "Data scientist", "Sales ops"], 1, "Operational oversight, maintenance, and compliance sit with the data manager. The Data PM cares when it affects a product's SLOs or value, but doesn't administer the systems.", undefined, "what-is-a-data-product-manager"),
   ]),
 ];
 
