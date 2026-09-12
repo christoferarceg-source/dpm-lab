@@ -1,0 +1,157 @@
+(globalThis.TURBOPACK||(globalThis.TURBOPACK=[])).push(["object"==typeof document?document.currentScript:void 0,3657,e=>{"use strict";var t=e.i(18050),o=e.i(71645),a=e.i(6159),n=e.i(18994),s=e.i(29187),r=e.i(26033),i=e.i(19846),l=e.i(77475),d=e.i(136),u=e.i(36420);let c="https://cdn.jsdelivr.net/pyodide/v314.0.6/full/",h=null;async function m(e){return h||(h=(async()=>{if(e?.("script"),await (0,d.loadScript)(`${c}pyodide.js`),!window.loadPyodide)throw Error("Pyodide loader did not expose loadPyodide");e?.("runtime");let t=await window.loadPyodide({indexURL:c});return e?.("pandas"),await t.loadPackage("pandas"),e?.("ready"),t})().catch(e=>{throw h=null,e})),h}let p=`
+import json as _json
+import pandas as pd
+accounts           = pd.DataFrame(_json.loads(__accounts_json))
+customers          = pd.DataFrame(_json.loads(__customers_json))
+deals              = pd.DataFrame(_json.loads(__deals_json))
+deal_stage_history = pd.DataFrame(_json.loads(__deal_stage_history_json))
+transactions       = pd.DataFrame(_json.loads(__transactions_json))
+pipeline_runs      = pd.DataFrame(_json.loads(__pipeline_runs_json))
+dashboard_views    = pd.DataFrame(_json.loads(__dashboard_views_json))
+result = None
+`,g=`
+import json as _json
+def _native(o):
+    try:
+        import numpy as _np
+        if isinstance(o, _np.generic):
+            return o.item()
+    except ImportError:
+        pass
+    if hasattr(o, "to_dict"):
+        try:
+            return o.to_dict("records")
+        except TypeError:
+            return o.to_dict()
+    if hasattr(o, "tolist"):
+        return o.tolist()
+    if hasattr(o, "isoformat"):
+        return o.isoformat()
+    return str(o)
+__serialized = _json.dumps(result, default=_native)
+`;async function w(e){let t=await m(),o=[];t.setStdout({batched:e=>o.push(e)}),t.setStderr({batched:e=>o.push(e)});let a=t.globals.get("dict")();try{let n=(0,l.getDataset)();for(let[e,t]of Object.entries(n))a.set(`__${e}_json`,JSON.stringify(t));let s=performance.now();t.runPython(p,{globals:a}),t.runPython(e,{globals:a}),t.runPython(g,{globals:a});let r=Math.round(performance.now()-s),i=a.get("__serialized");return{ok:!0,result:JSON.parse(i),stdout:o.join(""),ms:r}}catch(a){let e,t;return{ok:!1,error:((t=(e=(a instanceof Error?a.message:String(a)).split("\n")).findIndex(e=>e.includes('File "<exec>"')))>=0?e.slice(t):e.slice(-4)).join("\n").trim(),stdout:o.join("")}}finally{a.destroy()}}let y=i.default,f=new Map(r.pythonExercises.map(e=>[e.slug,e])),_={script:"Fetching Python runtime (first time only, ~10 MB)…",runtime:"Starting Python…",pandas:"Loading pandas…",ready:"Ready."};e.s(["default",0,function(){let e=(0,o.useCallback)(async e=>{await m(t=>e(_[t]))},[]),i=(0,o.useCallback)(async e=>{let t=await w(e);return t.ok?{ok:!0,payload:t.result,ms:t.ms,stdout:t.stdout}:{ok:!1,error:t.error,stdout:t.stdout}},[]),l=(0,o.useCallback)((e,t)=>{var o;let a=f.get(e);return e in y?(o=y[e],null==t?{passed:!1,reason:"`result` is still None — assign your answer to it."}:Array.isArray(o)&&!Array.isArray(t)?{passed:!1,reason:"Expected a list (e.g. from .to_dict('records')) but got a different type."}:Array.isArray(o)&&Array.isArray(t)&&t.length!==o.length?{passed:!1,reason:`Expected ${o.length} item(s) but got ${t.length}.`}:(0,u.deepEqual)(t,o,a.orderMatters??!1)?{passed:!0}:{passed:!1,reason:Array.isArray(o)?"Right length, but the values"+(a.orderMatters?" or their order":"")+" don't match. Check keys, rounding, and sort order.":"Value doesn't match. Check your filter and rounding."}):{passed:!1,reason:"No expected result on file for this exercise. Run npm run verify:answers."}},[]);return(0,t.jsx)(a.PracticeWorkspace,{kind:"python",title:"Python Practice",intro:(0,t.jsxs)("p",{children:["Real Python + pandas in your browser, same Meridian data as the SQL practice. All seven tables are pre-loaded as DataFrames. Assign your answer to ",(0,t.jsx)("code",{className:"font-mono",children:"result"}),"; use"," ",(0,t.jsx)("code",{className:"font-mono",children:"print()"})," to explore (output appears under “stdout”). The first run downloads the runtime; later runs are instant. The Python ladder currently mirrors chapters 1–2; more comes after the SQL ladder settles."]}),reference:(0,t.jsx)(s.TableReference,{}),exercises:r.pythonExercises.map(e=>({slug:e.slug,chapter:e.chapter,title:e.title,difficulty:e.difficulty,prompt:e.prompt,starter:e.starterCode,hint:e.hint,dpmConnection:e.dpmConnection})),prepare:e,run:i,grade:l,renderResult:e=>(0,t.jsx)(n.PyResultView,{value:e})})}],3657)},91987,e=>{e.v(t=>Promise.all(["static/chunks/09f98t6gkiyh-.js"].map(t=>e.l(t))).then(()=>t(95931)))},26033,e=>{"use strict";let t=[{slug:"py-count-closed-won",chapter:1,title:"Count the deals we won",difficulty:"warmup",prompt:'`deals` is a pandas DataFrame with a `stage` column.\n\nSet `result` to the **number** of rows where `stage == "closed_won"`.',starterCode:`# deals is already loaded as a pandas DataFrame.
+won = deals[deals["stage"] == "closed_won"]
+result = None  # TODO: how many rows are in won?`,solution:`won = deals[deals["stage"] == "closed_won"]
+result = len(won)`,dpmConnection:{text:"Boolean filtering is the pandas equivalent of a WHERE clause. Being able to reproduce a number a dashboard shows is how a Data PM verifies it instead of trusting it.",kbSlug:"four-key-shifts"},hint:"len(won) or won.shape[0]."},{slug:"py-deals-closed-value",chapter:1,title:"Functional metric: deals_closed_value",difficulty:"warmup",prompt:"Set `result` to **deals_closed_value**: the sum of `amount` for all `closed_won` deals.",starterCode:`won = deals[deals["stage"] == "closed_won"]
+result = None  # TODO: sum of won["amount"]`,solution:`won = deals[deals["stage"] == "closed_won"]
+result = won["amount"].sum()`,dpmConnection:{text:"Same functional metric you computed in SQL. A Data PM who can compute a metric two independent ways can catch a pipeline bug that only shows up in one path.",kbSlug:"metric-types"},hint:"won['amount'].sum() — a numpy type is fine; the grader converts it."},{slug:"py-revenue-generated",chapter:1,title:"North Star metric: revenue_generated",difficulty:"warmup",prompt:"Set `result` to **revenue_generated**: the sum of `amount` across the `transactions` DataFrame.",starterCode:'result = None  # TODO: total of transactions["amount"]',solution:'result = transactions["amount"].sum()',dpmConnection:{text:"A different table than deals. The gap between revenue and won-deal value is renewals plus upsells (and, until chapter 3, some duplicates). Explaining that gap to the CFO is chapter 6.",kbSlug:"metric-types"},hint:"transactions['amount'].sum()"},{slug:"py-conversion-rate",chapter:1,title:"Granular metric: conversion_rate",difficulty:"warmup",prompt:"Set `result` to **conversion_rate** = won ÷ (won + lost), where won = `closed_won` deals and lost = `closed_lost` deals. Open deals are excluded. Round to 4 decimals.",starterCode:`won  = (deals["stage"] == "closed_won").sum()
+lost = (deals["stage"] == "closed_lost").sum()
+result = None  # TODO: round(won / (won + lost), 4)`,solution:`won = (deals["stage"] == "closed_won").sum()
+lost = (deals["stage"] == "closed_lost").sum()
+result = round(float(won / (won + lost)), 4)`,dpmConnection:{text:"Summing a boolean Series is the pandas idiom for a conditional COUNT, the same trick as CASE WHEN in SQL. The definition decision (exclude open deals) must be written down or every consumer computes it differently.",kbSlug:"ontology-as-infrastructure"},hint:"round(won / (won + lost), 4). Wrap in float() if you get a numpy type."},{slug:"py-groupby-account",chapter:2,title:"Won value by account (merge + groupby)",difficulty:"core",prompt:"Merge `deals` with `accounts` on `account_id`, keep only `closed_won` deals, then compute total won amount per **account_name**.\n\nSet `result` to a **list of dicts** with keys `account_name` and `total_won`, sorted by `total_won` descending, then `account_name` ascending.",starterCode:`won = deals[deals["stage"] == "closed_won"]
+merged = won.merge(accounts, on="account_id")
+grouped = (
+    merged.groupby("account_name", as_index=False)["amount"]
+    .sum()
+    .rename(columns={"amount": "total_won"})
+    .sort_values(["total_won", "account_name"], ascending=[False, True])
+)
+result = None  # TODO: grouped.to_dict("records")`,solution:`won = deals[deals["stage"] == "closed_won"]
+merged = won.merge(accounts, on="account_id")
+grouped = (merged.groupby("account_name", as_index=False)["amount"].sum()
+    .rename(columns={"amount": "total_won"})
+    .sort_values(["total_won", "account_name"], ascending=[False, True]))
+result = grouped.to_dict("records")`,orderMatters:!0,dpmConnection:{text:"merge = JOIN, groupby = GROUP BY. This is the logical model's 'Relationships' (accounts 1:N deals) turned into a measure, the exact structure of a Metric Dependency Tree node.",kbSlug:"canvas-data-product-design"},hint:"The starter does the work; finish with .to_dict('records')."},{slug:"py-rep-performance",chapter:2,title:"Top-performing rep",difficulty:"core",prompt:"Group `closed_won` deals by `owner` and sum `amount`. Set `result` to a **dict** with keys `owner` and `total_won` for the single top rep.",starterCode:`won = deals[deals["stage"] == "closed_won"]
+by_owner = won.groupby("owner")["amount"].sum().sort_values(ascending=False)
+result = None  # TODO: {"owner": ..., "total_won": ...} for the first row`,solution:`won = deals[deals["stage"] == "closed_won"]
+by_owner = won.groupby("owner")["amount"].sum().sort_values(ascending=False)
+result = {"owner": by_owner.index[0], "total_won": int(by_owner.iloc[0])}`,dpmConnection:{text:"Reading one row out of a grouped Series: by_owner.index[0] and by_owner.iloc[0]. Look at the concentration: if one rep is a big share of won value, one bad record on their deals swings the North Star.",kbSlug:"bullseye-data-product-market-fit"},hint:"result = {'owner': by_owner.index[0], 'total_won': int(by_owner.iloc[0])}"},{slug:"py-region-conversion",chapter:2,title:"conversion_rate by region",difficulty:"core",prompt:"Compute **conversion_rate** per **region** (region is on `accounts`; stage on `deals`): won ÷ (won + lost), open deals excluded, rounded to 4 decimals.\n\nSet `result` to a **list of dicts** with keys `region` and `conversion_rate`, sorted by region ascending.",starterCode:`closed = deals[deals["stage"].isin(["closed_won", "closed_lost"])]
+merged = closed.merge(accounts, on="account_id")
+merged = merged.assign(is_won=(merged["stage"] == "closed_won").astype(int))
+grouped = (
+    merged.groupby("region", as_index=False)["is_won"]
+    .mean()
+    .rename(columns={"is_won": "conversion_rate"})
+    .sort_values("region")
+)
+grouped["conversion_rate"] = grouped["conversion_rate"].round(4)
+result = None  # TODO: grouped.to_dict("records")`,solution:`closed = deals[deals["stage"].isin(["closed_won", "closed_lost"])]
+merged = closed.merge(accounts, on="account_id")
+merged = merged.assign(is_won=(merged["stage"] == "closed_won").astype(int))
+grouped = (merged.groupby("region", as_index=False)["is_won"].mean()
+    .rename(columns={"is_won": "conversion_rate"}).sort_values("region"))
+grouped["conversion_rate"] = grouped["conversion_rate"].round(4)
+result = grouped.to_dict("records")`,orderMatters:!0,dpmConnection:{text:"The mean of a 0/1 indicator column IS the rate: a compact pandas idiom worth memorizing. Cross-entity slicing (measure on deals, dimension on accounts) is where join mistakes silently corrupt a metric.",kbSlug:"canvas-data-product-design"},hint:"The starter is complete except the last line."},{slug:"py-rca-source-lost",chapter:2,title:"Where are we losing deals?",difficulty:"core",prompt:"For each deal `source`, compute **lost_value** (sum of `amount` for `closed_lost` deals) and **lost_count**. Set `result` to a **list of dicts** with keys `source`, `lost_value`, `lost_count`, sorted by `lost_value` descending.",starterCode:`lost = deals[deals["stage"] == "closed_lost"]
+grouped = (
+    lost.groupby("source")
+    .agg(lost_value=("amount", "sum"), lost_count=("deal_id", "count"))
+    .reset_index()
+    .sort_values("lost_value", ascending=False)
+)
+result = None  # TODO: grouped.to_dict("records")`,solution:`lost = deals[deals["stage"] == "closed_lost"]
+grouped = (lost.groupby("source").agg(lost_value=("amount", "sum"), lost_count=("deal_id", "count"))
+    .reset_index().sort_values("lost_value", ascending=False))
+result = grouped.to_dict("records")`,orderMatters:!0,dpmConnection:{text:"Named aggregation (.agg(name=(col, fn))) computes several measures at once. The output is the raw material for an RCA conversation; the Data PM's job starts after this query.",kbSlug:"proof-of-value-performance"},hint:"grouped.to_dict('records')."}];e.s(["pythonExercises",0,t,"pythonExercisesForChapter",0,function(e){return t.filter(t=>t.chapter===e)}])},19846,(e,t,o)=>{t.exports={"py-count-closed-won":198,"py-deals-closed-value":0xbb7254,"py-revenue-generated":0xdfb204,"py-conversion-rate":.5395,"py-groupby-account":[{account_name:"Initech Software",total_won:1657e3},{account_name:"InGen Life Sciences",total_won:1108e3},{account_name:"Dunder Paper Co",total_won:986500},{account_name:"Wonka Foods",total_won:808500},{account_name:"Wayne Manufacturing",total_won:686e3},{account_name:"Rekall Travel",total_won:622e3},{account_name:"Tyrell Bio",total_won:614e3},{account_name:"Sirius Cybernetics",total_won:527e3},{account_name:"Buy n Large Retail",total_won:495500},{account_name:"Gringotts Fintech",total_won:45e4},{account_name:"Mooby Entertainment",total_won:317e3},{account_name:"Northwind Traders",total_won:310500},{account_name:"Virtucon",total_won:300500},{account_name:"Zorg Industries",total_won:258e3},{account_name:"Monarch Solutions",total_won:229500},{account_name:"Oceanic Airlines",total_won:224500},{account_name:"Nakatomi Trading",total_won:217500},{account_name:"Brawndo Beverages",total_won:215500},{account_name:"Wernham Hogg",total_won:204e3},{account_name:"Oscorp Materials",total_won:201500},{account_name:"Cheers Hospitality",total_won:189e3},{account_name:"Globex Logistics",total_won:188e3},{account_name:"Hooli Media",total_won:172500},{account_name:"Aperture Labs",total_won:166e3},{account_name:"Sterling Cooper",total_won:157e3},{account_name:"Massive Dynamic",total_won:137500},{account_name:"Acme Robotics",total_won:104500},{account_name:"Weyland Energy",total_won:103e3},{account_name:"Ollivander Supply",total_won:91500},{account_name:"Cyberdyne Systems",total_won:7e4},{account_name:"Vandelay Imports",total_won:68500},{account_name:"Bluth Homes",total_won:66e3},{account_name:"Los Pollos Foods",total_won:65500},{account_name:"Kwik-E-Mart Group",total_won:62e3},{account_name:"Umbrella Health",total_won:58e3},{account_name:"Stark Analytics",total_won:48e3},{account_name:"Pied Piper Cloud",total_won:46e3},{account_name:"Paper Street Soap",total_won:32e3},{account_name:"Soylent Nutrition",total_won:26500}],"py-rep-performance":{owner:"Jordan Blake",total_won:3203e3},"py-region-conversion":[{region:"AMER",conversion_rate:.5393},{region:"APAC",conversion_rate:.5325},{region:"EMEA",conversion_rate:.5446}],"py-rca-source-lost":[{source:"Outbound",lost_value:5655500,lost_count:90},{source:"Inbound",lost_value:3075500,lost_count:51},{source:"Referral",lost_value:1477e3,lost_count:28}]}},47371,e=>{"use strict";let t=[{number:1,slug:"bullseye",title:"Nobody trusts the number",week:"Week 1 · The Bullseye",tagline:"Find the real problem before you touch a query.",brief:`**Monday, 9:05.** Your laptop is still provisioning when Dana Whitfield walks into the room without knocking.
+
+> "The dashboard says our conversion rate is **61%**. It is not 61%. My reps would be swimming in commission. Can you make it right by Friday?"
+
+Ten minutes later Raj Patel messages you: *"Heads up, Dana thinks the numbers are wrong. All three pipelines have been green for months. Happy to walk you through them."* Lena Fischer from RevOps adds you to a channel called **#crm-hygiene** with no explanation.
+
+This is the moment the Four Key Shifts become real. A general PM would ship a fix. A Data PM asks: *which* number, defined *how*, trusted by *whom*, used for *what decision*?
+
+**Your job this week is discovery, not SQL.** Meet the people, map how they use data today, and pin down the North Star, functional, and granular metrics for a Sales domain. The warm-up exercises let you touch the data so you know what exists, but the real deliverable is a problem statement Dana and Sofia both sign.`,readings:["what-is-a-data-product-manager","four-key-shifts","bullseye-data-product-market-fit","metric-types","data-product-maturity-stages"],debrief:`**What a good Week 1 looked like.**
+
+- You did *not* fix the dashboard. You found out that "61%" was won \xf7 closed, that Dana's mental model was won \xf7 created, and that the two definitions differ by 15 points on the same data. Neither was "wrong."
+- You wrote a problem statement in Dana's words: *"I can't see where deals stall or which segment is dragging conversion."* Sofia agreed that is the proof-of-value target.
+- You picked the metric tree: North Star **revenue_generated**, functional **deals_closed_value**, granular **conversion_rate** and **days_in_stage**.
+- You noticed Meridian is in the *Reactive* stage: Raj builds what he's asked; nobody owns definitions.
+
+Next week you turn those definitions into a model everyone can point at.`},{number:2,slug:"canvas",title:"Define it before you compute it",week:"Week 2 · The Canvas",tagline:"Build the metric tree and the logical model behind it.",brief:`**Tuesday, 14:30, a whiteboard.** Three people, three conversion rates.
+
+- **Dana:** won \xf7 (won + lost). "Open deals haven't converted or failed yet."
+- **Lena:** won \xf7 created. "That's what the CRM report has always shown."
+- **Tom\xe1s:** won *amount* \xf7 closed *amount*. "I don't care how many deals. I care how many dollars."
+
+All three are legitimate. All three will produce a different chart. The Data PM's job is not to pick the winner in the meeting; it is to put every definition on the **Metric Dependency Tree** with a name, a formula, and an owner, so the fight happens once instead of every month.
+
+Raj shows you something else: deal stages are *overwritten* in the CRM, but there is an append-only **deal_stage_history** log. That changes what you can measure. Stage-to-stage conversion, time in stage, funnel drop-off: none of it exists on the \`deals\` table alone.
+
+**This week:** draft the logical model (entities, dimensions, measures, relationships, SLOs) and compute the funnel from the history log. The SQL gets real: CTEs, self-joins on the history, and your first window function.`,readings:["canvas-data-product-design","metric-types","funnel-conversion-analysis","sql-toolkit-for-data-pms"],debrief:"**What a good Week 2 looked like.**\n\n- The MDT now has *three* conversion definitions, each named: `conversion_rate_closed` (Dana), `conversion_rate_created` (Lena), `conversion_rate_value` (Tomás). The dashboard will show Dana's by default and label it.\n- You modeled the funnel from **deal_stage_history**, not from the current stage. Overwritten fields destroy history; append-only logs preserve it. This is the single most important modeling lesson in the chapter.\n- You learned that a stage-to-stage rate (proposal → negotiation) and an overall rate (created → won) answer different questions, and that time-in-stage is where deals actually stall.\n- SLOs made it onto the model for the first time: freshness of `deals` (< 24h), uniqueness of `transaction_id`, and completeness of `closed_date` for closed deals.\n\nNext week you find out whether the data actually meets those SLOs. Spoiler: it does not."},{number:3,slug:"activation",title:"The pipeline says success",week:"Week 3 · Activation",tagline:"Green runs, wrong numbers. Audit the data, not the dashboard.",brief:`**Wednesday, 07:50.** Sofia forwards you a screenshot. The revenue tile on the new prototype jumped **+189,500** overnight, then dropped back the next morning.
+
+Raj is defensive and has a point: every run of \`gold_sales_metrics\` succeeded. Then you look at the run log and find three straight days in June where it didn't, and one morning in July where \`crm_deals_ingest\` processed **30%** of the usual rows and still reported success.
+
+Lena, quietly: *"Reps close deals in the CRM days after the contract is signed. Sometimes they never move the stage at all."*
+
+This is Activation week: input ports, transforms, output ports, and **SLOs**. The first three exist. The fourth is where trust lives. Nobody is going to audit this data for you.
+
+**This week:** write the data-quality checks a Data PM would insist on before launch. Duplicates, stale stages, missing dates, freshness, failed-run streaks, and row-count anomalies. Window functions do the heavy lifting.`,readings:["data-product-activation","data-quality-dimensions","medallion-architecture","self-service-infrastructure"],debrief:'**What a good Week 3 looked like.**\n\n- You found **five duplicate transactions** (a re-ingested file) which explains the +189,500 jump. Uniqueness check added to the pipeline; Raj now owns it.\n- You found **four deals** whose CRM stage still said `negotiation` while the history log said `closed_won`. The source of truth for stage is now the history log, and `deals.stage` is derived from it.\n- You found closed deals with no `closed_date`, a three-day failed streak with no alert, and a partial-file day that passed as "success." Each became an SLO with a monitor.\n- Raj went from "the numbers are right" to "here is what the numbers can\'t guarantee." That is the team dynamic shift: *how do we validate?*\n\nNext week you ship, and adoption becomes the metric.'},{number:4,slug:"launch",title:"Ship it where they already are",week:"Week 4 · Launch",tagline:"A data product with no adoption plan is a report.",brief:`**Monday, 1 June.** The Sales Funnel Accelerator goes live. It has three metrics, labeled definitions, and a "why did this change" panel. Dana presents it at the sales all-hands.
+
+By Thursday, half of the reps are still opening the legacy Pipeline Report because it is bookmarked in their browser. Finance never opens either. Sofia asks the question you knew was coming: *"Is anyone using it?"*
+
+Adoption is not a vanity metric for a data product; it is the *only* evidence that the definitions you fought for are now the definitions people decide with. If usage stays flat, you built a report.
+
+**This week:** measure adoption properly (weekly active viewers, by role, versus the legacy dashboard), then use those numbers to decide where to spend your week: training, embedding the numbers in the CRM, or retiring the old report.`,readings:["go-to-market-launch","proof-of-value-performance"],debrief:`**What a good Week 4 looked like.**
+
+- Weekly active viewers roughly doubled every two weeks after launch while the legacy report faded. You retired the legacy report on 1 July with a redirect, not a memo.
+- Sales Managers adopted first, Sales Reps followed once a manager started asking about *their* stalled deals in 1:1s. Finance still had zero views: that became next week's stakeholder conversation with Tom\xe1s.
+- You reported adoption as **distinct viewers per role**, not raw views. Raw views were inflated by two RevOps analysts refreshing all day.
+
+Next week the number moves in the wrong direction and everyone has a theory.`},{number:5,slug:"proof",title:"Conversion fell and everyone has a theory",week:"Week 5 · Proof",tagline:"Walk down the metric tree. Don't argue at the top of it.",brief:`**Tuesday, 08:15, exec staff.** Sofia puts the chart up. Conversion rate for deals created in **May and June** is well below the first four months of the year.
+
+- **Dana:** "It's the price increase in May. I said so."
+- **Lena:** "It's the new outbound lead-scoring vendor. The leads are garbage."
+- **Raj:** "Are we sure it isn't the stale-stage problem from week 3?"
+- **Tom\xe1s:** "Is this deal count or deal value?"
+
+Four hypotheses, one number. This is what the Metric Dependency Tree is for. A drop at the top has to show up somewhere at the bottom: a segment, a stage, a rep, a source. Root-cause analysis is walking *down* the tree with a query at each level until one branch explains most of the move.
+
+**This week:** confirm the drop is real (and not an artifact of open deals), then slice it by region \xd7 source, by stage velocity, and by rep. Bring the exec team a cause, a size, and a fix, not a theory.`,readings:["proof-of-value-performance","funnel-conversion-analysis","oee-manufacturing-case-study"],debrief:`**What a good Week 5 looked like.**
+
+- The drop was real for *resolved* deals; once you excluded open deals created in July and August, the story was clean.
+- It was concentrated in **AMER \xd7 Outbound**. Every other segment was flat. That killed the price-increase theory in one query (a price increase hits every region and source).
+- Time in *negotiation* for that segment roughly doubled: the leads were reaching negotiation but not closing. Lena's vendor theory held; Raj's stale-stage theory explained only a handful of deals.
+- You sized it (a specific number of deals and dollars) and proposed the fix (revert the vendor's scoring model for AMER, re-qualify the open May–June outbound deals). Sofia approved it in the meeting.
+
+One week left, and the CFO wants a revenue number for the board.`},{number:6,slug:"beyond",title:"One number, three meanings",week:"Week 6 · Beyond",tagline:"Reconcile revenue, then make the definitions machine-readable.",brief:`**Thursday, 16:00.** Tom\xe1s sends a one-line email: *"Board deck says revenue 7.77M. Sales deck says 6.84M. Which one do I put on the slide?"*
+
+Neither is wrong. One is the sum of **transactions** (cash movements, including renewals and upsells). The other is the sum of **closed_won deal amounts** (bookings). They diverge exactly where a business is healthy: existing customers paying more. But if nobody writes that down, an AI agent someone is piloting for "revenue questions" will pick whichever definition it finds first.
+
+That is the ontology gap, and it is your last deliverable: a reconciliation that explains every dollar of the difference, a running revenue total by month, and one capstone query that computes the whole metric tree from a single set of definitions.
+
+**This week:** reconcile, then write it down in a form both people and agents can consume. You are no longer fixing a dashboard. You are defining what Meridian means when it says a word.`,readings:["ontology-as-infrastructure","agent-observability-gap","lean-ai-cost-economics"],debrief:`**What a good Week 6 looked like.**
+
+- Revenue got two names with owners: \`bookings_value\` (Sales, from deals) and \`revenue_generated\` (Finance, from transactions). The board slide shows both and the bridge between them: renewals, upsells, and the duplicate rows you removed in week 3.
+- The running-total query became the first "gold" metric with a written definition, a test, and an SLO. Every future metric follows the same template.
+- You handed the definitions to the agent pilot as a semantic contract, and asked for an evaluation set before it answers a single executive. Observability tells you it ran; evaluation tells you it was right.
+
+**Six weeks in.** Meridian moved from *Reactive* to *Purpose-driven* on one domain. That is what a proof of value is: not every metric, one metric tree that people decide with.`}];e.s(["CAST",0,[{name:"Sofia Marin",role:"CEO, your sponsor",agenda:"Wants proof within six weeks that a Data PM is worth the headcount. Cares about one thing: decisions getting made faster, on numbers people trust."},{name:"Dana Whitfield",role:"VP Sales",agenda:"Has stopped opening the legacy Pipeline Report. Wants a 'Sales Funnel Accelerator' that tells her where deals are stuck and why. Distrusts any conversion rate above 50%."},{name:"Raj Patel",role:"Analytics Engineer",agenda:"Owns the three pipelines (crm_deals_ingest, transactions_ingest, gold_sales_metrics). Every run is green. Tired of being told the numbers are wrong without anyone saying which number."},{name:"Lena Fischer",role:"RevOps Lead",agenda:"Owns CRM hygiene. Knows reps update deal stages late and sometimes not at all. Brought in a new outbound lead-scoring vendor in May."},{name:"Tomás Reyes",role:"CFO",agenda:"Needs a revenue number for the board that matches what finance recognizes, not what sales booked. Asks what 'revenue' means every time someone says it."}],"chapters",0,t,"getChapter",0,function(e){return t.find(t=>t.number===e)}])},74581,e=>{"use strict";var t=e.i(71645);function o(e=new Date){let t=e.getFullYear(),a=String(e.getMonth()+1).padStart(2,"0"),n=String(e.getDate()).padStart(2,"0");return`${t}-${a}-${n}`}let a="dpm-lab:progress:v1";function n(){return{version:1,user_id:"local",exercises:{},attempts:[],srs:{},lessons:{},streak:{current:0,lastActiveDate:null}}}function s(){try{let e=window.localStorage.getItem(a);if(!e)return n();let t=JSON.parse(e);if(t?.version!==1)return n();return{...n(),...t}}catch{return n()}}function r(e){let t,a=o(),{current:n,lastActiveDate:s}=e.streak;if(s===a)return e;let r=s===((t=new Date).setDate(t.getDate()-1),o(t))?n+1:1;return{...e,streak:{current:r,lastActiveDate:a}}}let i=n(),l=null,d=new Set;function u(){return null===l&&(l=s()),l}function c(){return i}function h(){for(let e of d)e()}function m(e){d.add(e);let t=e=>{e.key===a&&(l=s(),h())};return window.addEventListener("storage",t),()=>{d.delete(e),window.removeEventListener("storage",t)}}e.s(["dueCards",0,function(e,t){return t.filter(t=>(function(e,t=new Date){return!e||e.due<=o(t)})(e.srs[t.id]))},"useProgress",0,function(){let e=(0,t.useSyncExternalStore)(m,u,c),s=(0,t.useCallback)(e=>{var t=e(u());l=t;try{window.localStorage.setItem(a,JSON.stringify(t))}catch{}h()},[]),d=(0,t.useCallback)((e,t,o,a)=>s(n=>{let s,i,l,d,u;return s=new Date().toISOString(),i=n.exercises[e]??{kind:t,status:"not_started",attempts:0},l=a||"solved"===i.status?"solved":"attempted",d={...n.exercises,[e]:{...i,kind:t,status:l,attempts:i.attempts+1,lastAttemptAt:s,solvedAt:a&&!i.solvedAt?s:i.solvedAt}},u=[{id:`${e}:${s}`,slug:e,kind:t,code:o,passed:a,at:s},...n.attempts].slice(0,200),r({...n,exercises:d,attempts:u})}),[s]),p=(0,t.useCallback)((e,t)=>s(a=>{let n;return n=a.srs[e]??function(e=new Date){return{ease:2.5,interval:0,repetitions:0,due:o(e)}}(),r({...a,srs:{...a.srs,[e]:function(e,t,a=new Date){let{ease:n,interval:s,repetitions:r}=e;return t<3?(r=0,s=1):(s=0===r?1:1===r?6:Math.round(s*n),r+=1),(n+=.1-(5-t)*(.08+(5-t)*.02))<1.3&&(n=1.3),{ease:Math.round(100*n)/100,interval:s,repetitions:r,due:function(e,t){let[a,n,s]=e.split("-").map(Number),r=new Date(a,n-1,s);return r.setDate(r.getDate()+t),o(r)}(o(a),s)}}(n,t)}})}),[s]);return{data:e,hydrated:e!==i,recordAttempt:d,recordReview:p,recordLessonComplete:(0,t.useCallback)((e,t)=>s(o=>{let a,n;return a=o.lessons[e],n=Math.max(a?.bestAccuracy??0,t),r({...o,lessons:{...o.lessons,[e]:{completedAt:new Date().toISOString(),completions:(a?.completions??0)+1,bestAccuracy:n,perfect:n>=1}}})}),[s]),reset:(0,t.useCallback)(()=>s(()=>n()),[s])}}],74581)}]);
