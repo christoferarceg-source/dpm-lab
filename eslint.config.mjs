@@ -12,6 +12,9 @@ const eslintConfig = defineConfig([
     "out/**",
     "build/**",
     "next-env.d.ts",
+    // Vendored / one-off files not part of the app bundle:
+    "public/**",
+    "scripts/**",
   ]),
 ]);
 

@@ -1,69 +1,105 @@
-import Image from "next/image";
+"use client";
 
-export default function Home() {
+import Link from "next/link";
+import { kbEntries } from "@/content/kb";
+import { sqlExercises } from "@/content/exercises-sql";
+import { pythonExercises } from "@/content/exercises-python";
+import { flashcards } from "@/content/flashcards";
+import { dueCards, useProgress } from "@/lib/progress-store";
+
+function Stat({ label, value, sub }: { label: string; value: string; sub?: string }) {
   return (
-    <div className="flex flex-col flex-1 items-center justify-center bg-zinc-50 font-sans dark:bg-black">
-      <main className="flex flex-1 w-full max-w-3xl flex-col items-center justify-between py-32 px-16 bg-white dark:bg-black sm:items-start">
-        <Image
-          className="dark:invert h-5 w-[100px]"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
-        />
-        <div className="flex flex-col items-center gap-6 text-center sm:items-start sm:text-left">
-          <h1 className="max-w-xs text-3xl font-semibold leading-10 tracking-tight text-black dark:text-zinc-50">
-            To get started, edit the{" "}
-            <code className="rounded bg-black/[.06] px-1.5 py-0.5 font-mono text-[0.9em] dark:bg-white/[.08]">
-              page.tsx
-            </code>{" "}
-            file.
-          </h1>
-          <p className="max-w-md text-lg leading-8 text-zinc-600 dark:text-zinc-400">
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Learning
-            </a>{" "}
-            center.
+    <div className="bg-surface border border-border rounded-xl p-4">
+      <p className="text-xs uppercase tracking-wide text-muted">{label}</p>
+      <p className="text-2xl font-semibold mt-1 tabular-nums">{value}</p>
+      {sub && <p className="text-xs text-muted mt-0.5">{sub}</p>}
+    </div>
+  );
+}
+
+export default function Dashboard() {
+  const { data, hydrated, reset } = useProgress();
+
+  const solved = (slugs: string[]) => slugs.filter((s) => data.exercises[s]?.status === "solved").length;
+  const sqlSolved = solved(sqlExercises.map((e) => e.slug));
+  const pySolved = solved(pythonExercises.map((e) => e.slug));
+  const due = hydrated ? dueCards(data, flashcards).length : 0;
+
+  const nextSql = sqlExercises.find((e) => data.exercises[e.slug]?.status !== "solved");
+  const nextPy = pythonExercises.find((e) => data.exercises[e.slug]?.status !== "solved");
+
+  return (
+    <div className="space-y-8">
+      <div>
+        <h1 className="text-2xl font-semibold tracking-tight">Dashboard</h1>
+        <p className="text-muted mt-1">
+          Knowledge base → practice → review. Hard skills tied to the data product metric tree.
+        </p>
+      </div>
+
+      <div className="grid gap-3 grid-cols-2 lg:grid-cols-4">
+        <Stat label="Streak" value={hydrated ? `${data.streak.current}d` : "–"} sub="consecutive active days" />
+        <Stat label="SQL" value={hydrated ? `${sqlSolved}/${sqlExercises.length}` : "–"} sub="exercises solved" />
+        <Stat label="Python" value={hydrated ? `${pySolved}/${pythonExercises.length}` : "–"} sub="exercises solved" />
+        <Stat label="Review" value={hydrated ? `${due}` : "–"} sub={`cards due of ${flashcards.length}`} />
+      </div>
+
+      <section className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+        <Link href="/practice/sql" className="bg-surface border border-border rounded-xl p-5 hover:border-accent transition-colors">
+          <p className="text-xs uppercase tracking-wide text-muted">Next up · SQL</p>
+          <p className="font-semibold mt-1">{nextSql ? nextSql.title : "All solved"}</p>
+          <p className="text-sm text-muted mt-1">
+            {nextSql ? nextSql.dpmConnection.text.split(".")[0] + "." : "Re-run any exercise to keep it sharp."}
           </p>
-        </div>
-        <div className="flex flex-col gap-4 text-base font-medium sm:flex-row">
-          <a
-            className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-foreground px-5 text-background transition-colors hover:bg-[#383838] dark:hover:bg-[#ccc] md:w-[158px]"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
+        </Link>
+        <Link href="/practice/python" className="bg-surface border border-border rounded-xl p-5 hover:border-accent transition-colors">
+          <p className="text-xs uppercase tracking-wide text-muted">Next up · Python</p>
+          <p className="font-semibold mt-1">{nextPy ? nextPy.title : "All solved"}</p>
+          <p className="text-sm text-muted mt-1">
+            {nextPy ? nextPy.dpmConnection.text.split(".")[0] + "." : "Re-run any exercise to keep it sharp."}
+          </p>
+        </Link>
+        <Link href="/review" className="bg-surface border border-border rounded-xl p-5 hover:border-accent transition-colors">
+          <p className="text-xs uppercase tracking-wide text-muted">Review</p>
+          <p className="font-semibold mt-1">{due > 0 ? `${due} card${due === 1 ? "" : "s"} due` : "Deck is clear"}</p>
+          <p className="text-sm text-muted mt-1">SM-2 scheduling. Rate honestly — the intervals depend on it.</p>
+        </Link>
+      </section>
+
+      <section className="bg-surface-2/60 border border-border rounded-xl p-5 text-sm">
+        <p className="font-semibold">How the pieces connect</p>
+        <ol className="list-decimal pl-5 mt-2 space-y-1 text-muted">
+          <li>
+            The <Link href="/kb" className="text-accent underline underline-offset-2">Knowledge Base</Link> holds
+            the frameworks ({kbEntries.length} entries): metric types, the Metric Dependency Tree, medallion layers,
+            the 6-week playbook.
+          </li>
+          <li>
+            Every SQL and Python exercise computes a node of the Playbook&apos;s Sales Funnel metric tree and links
+            back to the KB entry that explains why that metric exists.
+          </li>
+          <li>
+            Flashcards in Review are drawn from the same entries, so what you practice and what you recall stay in
+            sync.
+          </li>
+        </ol>
+      </section>
+
+      {hydrated && (data.attempts.length > 0 || Object.keys(data.srs).length > 0) && (
+        <section className="text-xs text-muted flex items-center gap-3">
+          <span>
+            {data.attempts.length} attempt{data.attempts.length === 1 ? "" : "s"} logged in this browser.
+          </span>
+          <button
+            onClick={() => {
+              if (window.confirm("Reset all local progress? This cannot be undone.")) reset();
+            }}
+            className="underline underline-offset-2 hover:text-fg"
           >
-            <Image
-              className="dark:invert h-[14px] w-4"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={14}
-            />
-            Deploy Now
-          </a>
-          <a
-            className="flex h-12 w-full items-center justify-center rounded-full border border-solid border-black/[.08] px-5 transition-colors hover:border-transparent hover:bg-black/[.04] dark:border-white/[.145] dark:hover:bg-[#1a1a1a] md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Documentation
-          </a>
-        </div>
-      </main>
+            Reset progress
+          </button>
+        </section>
+      )}
     </div>
   );
 }

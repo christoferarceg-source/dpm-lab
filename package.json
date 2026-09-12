@@ -6,12 +6,24 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "eslint"
+    "lint": "eslint",
+    "test": "tsx scripts/test-graders.mts",
+    "verify:answers": "node scripts/compute-expected.mjs",
+    "build:static": "STATIC_EXPORT=1 NEXT_PUBLIC_BASE_PATH=/dpm-lab next build",
+    "deploy": "npm run build:static && gh-pages -d out --dotfiles -m \"Deploy to GitHub Pages\""
   },
   "dependencies": {
+    "@codemirror/lang-python": "^6.2.1",
+    "@codemirror/lang-sql": "^6.10.0",
+    "@types/sql.js": "^1.4.11",
+    "@uiw/react-codemirror": "^4.25.11",
     "next": "16.3.5",
+    "pyodide": "^314.0.6",
     "react": "19.2.8",
-    "react-dom": "19.2.8"
+    "react-dom": "19.2.8",
+    "react-markdown": "^10.1.0",
+    "remark-gfm": "^4.0.1",
+    "sql.js": "^1.14.2"
   },
   "devDependencies": {
     "@tailwindcss/postcss": "^4",
@@ -20,7 +32,9 @@
     "@types/react-dom": "^19",
     "eslint": "^9",
     "eslint-config-next": "16.3.5",
+    "gh-pages": "^6.3.0",
     "tailwindcss": "^4",
+    "tsx": "^4.23.13",
     "typescript": "^5"
   }
 }

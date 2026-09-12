@@ -1,36 +1,82 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# DPM Lab
 
-## Getting Started
+A personal learning tool for **Data Product Management**: a knowledge base
+that feeds hands-on practice, so the frameworks you know and the hard skills
+you use (SQL, Python) stay connected to each other.
 
-First, run the development server:
+- **Knowledge Base** — study notes seeded from your PRD, the 6-Week Data
+  Products Playbook, State of Data Products Q2 2026, and the Big Book of
+  Data Science. Entries link to each other with `[[slug]]`.
+- **SQL Practice** — real SQLite in the browser (sql.js) against the
+  Playbook's *Sales Funnel Accelerator* dataset. Every exercise computes a
+  node of the metric tree (`revenue_generated` → `deals_closed_value` →
+  `conversion_rate`) and says why that node matters.
+- **Python Practice** — the same dataset and metrics in pandas, run in the
+  browser via Pyodide.
+- **Review** — SM-2 spaced-repetition flashcards drawn from the KB.
+- **Progress** — stored in this browser's localStorage (no account yet).
+
+## Run it
 
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+npm install
+npm run dev          # http://localhost:3000
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+The first Python run downloads the Pyodide runtime + pandas (~10 MB) from
+jsdelivr; later runs use the browser cache. SQL is fully self-hosted.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## Verify
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+```bash
+npm test             # graders end-to-end in Node (sql.js + Pyodide), compare, SM-2
+npm run verify:answers   # recompute every exercise's expected answer from the dataset
+npm run lint
+npm run build
+```
 
-## Learn More
+## Layout
 
-To learn more about Next.js, take a look at the following resources:
+```
+app/                 routes: / (dashboard), /kb, /kb/[slug], /practice/{sql,python}, /review
+content/
+  kb.ts              knowledge-base entries
+  flashcards.ts      review deck (each card → a KB slug)
+  dataset.ts         seed data + schema for the Sales Funnel Accelerator
+  exercises-sql.ts   SQL exercises with verified expected rows
+  exercises-python.ts pandas exercises with verified expected results
+lib/
+  sql-engine.ts      sql.js loader, query runner, grader
+  py-engine.ts       Pyodide loader, runner (setup → user code → JSON serialize), grader
+  compare.ts         tolerant deep-equality used by both graders
+  srs.ts             SM-2
+  progress-store.ts  localStorage store exposed via useSyncExternalStore
+  kb.ts              KB lookups + [[wiki-link]] resolution
+components/          NavBar, Markdown, CodeEditor (CodeMirror), PracticeWorkspace, ResultTable
+scripts/
+  compute-expected.mjs  prints the correct answer for every exercise (source of truth)
+  test-graders.mts      headless test of both graders
+public/              sql-wasm.js + sql-wasm.wasm (self-hosted sql.js)
+```
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+## Adding content
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+- **KB entry**: append to `content/kb.ts`. Use `[[other-slug]]` to
+  cross-link. Add a flashcard or two in `content/flashcards.ts`.
+- **SQL exercise**: add the reference query to `scripts/compute-expected.mjs`,
+  run `npm run verify:answers`, paste the printed columns/rows into
+  `content/exercises-sql.ts`, and add the reference solution to
+  `scripts/test-graders.mts`. Set `orderMatters: true` only if the prompt
+  specifies an ORDER BY.
+- **Python exercise**: same flow with `content/exercises-python.ts`. Users
+  assign their answer to `result`; the runner serializes it to JSON inside
+  Python, so numpy scalars and DataFrames (`.to_dict("records")`) both work.
 
-## Deploy on Vercel
+## Roadmap (not built yet)
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+- Stakeholder simulation, incident RCA cases, teach-back — need an LLM
+  backend (Claude API route + `ANTHROPIC_API_KEY`).
+- Guided-interview capture of your own experience into the KB.
+- Supabase auth + Postgres for cross-device progress (the progress store is
+  already shaped as user-keyed tables for this).
+- Native app client reusing the same backend.

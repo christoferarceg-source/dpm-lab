@@ -1,0 +1,133 @@
+import type { Flashcard } from "@/lib/types";
+
+// Spaced-review deck. Each card points at the KB entry that explains it, so
+// a card you keep failing links straight to the material to re-read.
+
+export const flashcards: Flashcard[] = [
+  {
+    id: "fc-dpm-definition",
+    kbSlug: "what-is-a-data-product-manager",
+    front: "What does a Data Product Manager manage, and at the intersection of which three things does the role sit?",
+    back: "Data products — warehouses, platforms, analytics tools, pipelines, ML models — at the intersection of data, technology, and business.",
+  },
+  {
+    id: "fc-risk-profile",
+    kbSlug: "four-key-shifts",
+    front: "Four Key Shifts — how does the RISK PROFILE differ between a general PM and a data PM?",
+    back: "General PM: ship (potentially) buggy code, push a fix. Data PM: ship bad data, lose trust — often permanently.",
+  },
+  {
+    id: "fc-success-metrics",
+    kbSlug: "four-key-shifts",
+    front: "Four Key Shifts — what SUCCESS METRICS replace usage/engagement/retention for a data PM?",
+    back: "Data quality, decision velocity, and trust signals.",
+  },
+  {
+    id: "fc-team-question",
+    kbSlug: "four-key-shifts",
+    front: "Four Key Shifts — the team's default question changes from 'When can we ship?' to what?",
+    back: "'How do we validate?'",
+  },
+  {
+    id: "fc-medallion",
+    kbSlug: "medallion-architecture",
+    front: "Name the three medallion layers and what each holds.",
+    back: "Bronze = raw ingestion. Silver = filtered, cleaned, augmented. Gold = business-level aggregates that feed analytics, AI, and reporting.",
+  },
+  {
+    id: "fc-north-star",
+    kbSlug: "metric-types",
+    front: "Define a North Star metric and give the Playbook's Sales example.",
+    back: "The domain's leading metric, tied directly to business outcomes. Example: revenue_generated.",
+  },
+  {
+    id: "fc-functional",
+    kbSlug: "metric-types",
+    front: "Define a Functional metric and give the Playbook's Sales example.",
+    back: "The leading metric for a specific function within the domain. Example: #deals_closed_value.",
+  },
+  {
+    id: "fc-granular",
+    kbSlug: "metric-types",
+    front: "Define a Granular metric and give the Playbook's Sales example.",
+    back: "An indicator of effectiveness that explains WHY a functional metric moved. Example: conversion_rate.",
+  },
+  {
+    id: "fc-mdt",
+    kbSlug: "canvas-data-product-design",
+    front: "What is a Metric Dependency Tree (MDT) and why does it make root-cause analysis tractable?",
+    back: "A tree where granular metrics roll up into functional metrics, which roll up into the North Star. RCA = walking down the tree from the number that moved to the leaf that explains it.",
+  },
+  {
+    id: "fc-logical-model",
+    kbSlug: "canvas-data-product-design",
+    front: "The logical data model (Week 2) has five parts. Name them.",
+    back: "Entities, Dimensions, Measures, Relationships, SLOs (+ Semantics as context around all of them).",
+  },
+  {
+    id: "fc-activation",
+    kbSlug: "data-product-activation",
+    front: "A data product activates once which FOUR pieces exist?",
+    back: "Input ports, transformation steps, output ports, SLOs.",
+  },
+  {
+    id: "fc-week1",
+    kbSlug: "bullseye-data-product-market-fit",
+    front: "Week 1 (The Bullseye) — what are the four steps, in order?",
+    back: "1) Retrieve requirements from end users. 2) Map the existing user journey. 3) Align on data's new purpose (value prop). 4) Identify North Star / functional / granular metrics.",
+  },
+  {
+    id: "fc-week1-duration",
+    kbSlug: "bullseye-data-product-market-fit",
+    front: "How long should you spend on Week 1 discovery at minimum, and what kind of metrics should you pick for a proof of value?",
+    back: "At least one full week. Pick hard-hitting metrics directly useful to leadership.",
+  },
+  {
+    id: "fc-maturity",
+    kbSlug: "data-product-maturity-stages",
+    front: "Name the four data-product maturity stages, from least to most mature.",
+    back: "Ad-hoc → Reactive → Strategy-driven → Purpose-driven.",
+  },
+  {
+    id: "fc-ssi",
+    kbSlug: "self-service-infrastructure",
+    front: "What does a self-service infrastructure (SSI) let an analytics engineer do instead of building plumbing?",
+    back: "Declare input/output locations and transform steps; the SSI supplies workflows, services, secrets, connectors, monitors, policies, and contracts as ready-to-use resources.",
+  },
+  {
+    id: "fc-gtm",
+    kbSlug: "go-to-market-launch",
+    front: "Week 4 (Launch) — what does 'native accessibility' mean for data product adoption?",
+    back: "Exist where the user already is: work with the tools they already use rather than asking them to adopt a new interface.",
+  },
+  {
+    id: "fc-proof",
+    kbSlug: "proof-of-value-performance",
+    front: "Which stage of the 6-week playbook should get the HIGHEST share of effort, and why?",
+    back: "Post-launch/adoption (Weeks 5–6) — it's where you learn how real users interact with the product and generate the feedback loop that drives the MVP.",
+  },
+  {
+    id: "fc-ontology",
+    kbSlug: "ontology-as-infrastructure",
+    front: "Why did enterprises function without formal ontologies for years, and what changed with AI agents?",
+    back: "Meaning was localized in silos and humans silently resolved ambiguity. Autonomous agents can't — they pick whichever definition they hit first, and the guess compounds at scale.",
+  },
+  {
+    id: "fc-observability",
+    kbSlug: "agent-observability-gap",
+    front: "What's the difference between agent observability and agent evaluation?",
+    back: "Observability tells you the agent RAN (latency, tokens, errors). Evaluation tells you whether it was RIGHT. Most teams have the first, about half have the second.",
+  },
+  {
+    id: "fc-lean-ai",
+    kbSlug: "lean-ai-cost-economics",
+    front: "Lean AI — what's the mature alternative to choosing between small and large models?",
+    back: "Route by difficulty: narrow/small models for the high-volume well-defined slice, frontier models only for the hard fraction that needs them. Cost-per-outcome is the metric.",
+  },
+  {
+    id: "fc-oee",
+    kbSlug: "oee-manufacturing-case-study",
+    front: "Write the OEE formula and the threshold considered world-leading.",
+    back: "OEE = Machine Availability × Process Efficiency × Product Quality. 85%+ is world-leading; most sit at 40–60%.",
+  },
+];
