@@ -40,6 +40,9 @@ export function LearnPath() {
   const xp = computeXp(data);
   const lvl = levelFor(xp.total);
 
+  const nextUnit = next ? units.find((u) => u.number === next.unit) : null;
+  const nextIndex = next && nextUnit ? nextUnit.lessons.findIndex((l) => l.id === next.id) + 1 : 0;
+
   return (
     <div className="space-y-8">
       <div className="flex items-center justify-between gap-3">
@@ -48,13 +51,37 @@ export function LearnPath() {
           <p className="text-sm text-muted">One-minute lessons. Real labs. Meridian&apos;s data has problems planted in it.</p>
         </div>
         {hydrated && (
-          <Link href="/profile" className="shrink-0 text-right">
-            <p className="text-xs uppercase tracking-wide text-muted">Level {lvl.level}</p>
-            <p className="font-semibold tabular-nums">{xp.total} XP</p>
-            <p className="text-[0.7rem] text-muted">{levelTitle(lvl.level)}</p>
+          <Link href="/profile" className="shrink-0 flex items-center gap-3 bg-surface border border-border rounded-xl px-3 py-2 hover:border-accent">
+            <span className="w-9 h-9 rounded-full bg-accent text-accent-fg flex items-center justify-center font-semibold tabular-nums">{lvl.level}</span>
+            <span className="text-right leading-tight">
+              <span className="block font-semibold tabular-nums">{xp.total} XP</span>
+              <span className="block text-[0.7rem] text-muted">{levelTitle(lvl.level)}</span>
+            </span>
           </Link>
         )}
       </div>
+
+      {hydrated && next && nextUnit && (
+        <Link
+          href={`/lesson/${next.id}`}
+          className="block bg-surface border-2 rounded-2xl p-4 sm:p-5 hover:-translate-y-0.5 transition-transform node-shadow"
+          style={{ borderColor: nextUnit.color, ["--node-shadow" as string]: `${nextUnit.color}55` }}
+        >
+          <div className="flex items-center gap-4">
+            <span className="w-12 h-12 rounded-full flex items-center justify-center text-white text-lg font-semibold shrink-0" style={{ background: nextUnit.color }}>
+              {nextIndex}
+            </span>
+            <span className="min-w-0 flex-1">
+              <span className="block text-[0.7rem] uppercase tracking-wide text-muted">Continue · {nextUnit.week}</span>
+              <span className="block font-semibold truncate">{next.title}</span>
+              <span className="block text-xs text-muted">About 1 minute · concept + 5 questions</span>
+            </span>
+            <span className="shrink-0 px-4 py-2 rounded-xl text-white font-semibold text-sm" style={{ background: nextUnit.color }}>
+              Start
+            </span>
+          </div>
+        </Link>
+      )}
 
       {units.map((unit, ui) => {
         const p = progress[ui];
@@ -76,13 +103,18 @@ export function LearnPath() {
                 ) : (
                   <span className="inline-block text-xs font-medium bg-white/20 rounded-md px-2.5 py-1.5">Basics</span>
                 )}
-                {hydrated && (
-                  <p className="text-xs opacity-80 mt-2 tabular-nums">
-                    {p.lessonsDone}/{p.lessonsTotal} lessons
-                  </p>
-                )}
               </div>
             </div>
+            {hydrated && (
+              <div className="flex items-center gap-3 px-1 -mt-1">
+                <div className="h-1.5 flex-1 rounded-full bg-border overflow-hidden">
+                  <div className="h-full rounded-full transition-all" style={{ width: `${Math.round(p.fraction * 100)}%`, background: unit.color }} />
+                </div>
+                <p className="text-xs text-muted tabular-nums shrink-0">
+                  {p.lessonsDone}/{p.lessonsTotal} lessons · Lab {p.labDone}/{p.labTotal}
+                </p>
+              </div>
+            )}
 
             <ol className="flex flex-col items-center gap-11 py-4 pb-10">
               {unit.lessons.map((lesson, li) => {

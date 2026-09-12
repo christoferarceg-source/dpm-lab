@@ -208,4 +208,23 @@ export const flashcards: Flashcard[] = [
     front: "One line each: how does a Data PM differ from an analyst, a data engineer, and a data manager?",
     back: "Analyst: the analytical how (consumes data products). Engineer: builds the infrastructure. Data manager: operational oversight and compliance. Data PM: the strategic what and why; defines requirements and prioritizes the backlog.",
   },
+  {
+    id: "fc-data-product-def",
+    kbSlug: "what-is-a-data-product",
+    front: "Define a data product in one sentence, and name the three forces that create one.",
+    back: "A curated, reliable, reusable data asset intentionally designed for ongoing use, with a domain boundary, stable model, embedded validation, and clear access. Forces: stable semantics, embedded governance, defined consumer purpose.",
+  },
+  {
+    id: "fc-not-a-data-product",
+    kbSlug: "what-is-a-data-product",
+    front: "Why is a dataset not a data product? A dashboard? A pipeline?",
+    back: "Dataset: storage isn't productisation (no stewardship/service expectations). Dashboard: a consumption layer, not the governed logic. Pipeline: movement isn't ownership (no durable quality guarantee).",
+  },
+  {
+    id: "fc-product-types",
+    kbSlug: "what-is-a-data-product",
+    front: "Name the three data product types and what each is for.",
+    back: "Source-aligned: expose domain data faithfully with contracts. Aggregate: consolidate cross-domain logic into standard measures. Consumer-aligned: purpose-built for one use case's latency, interface, and guarantees.",
+  },
 ];
+

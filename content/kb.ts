@@ -626,4 +626,59 @@ numpy number into a plain one; \`(deals['stage'] == 'closed_won').sum()\`
 counts True values, the pandas CASE WHEN.`,
     source: "Synthesized for DPM Lab (Level 0).",
   },
+  {
+    slug: "what-is-a-data-product",
+    title: "What a Data Product Is (and Isn't)",
+    category: "definition",
+    tags: ["data-product", "fundamentals", "anatomy"],
+    summary:
+      "A curated, reliable, reusable data asset designed for ongoing use, with an owner, service expectations, and embedded quality. Not a dataset, not a dashboard, not a pipeline.",
+    body: `## The definition
+A **data product** is a curated, reliable, and reusable data asset
+*intentionally designed for ongoing use*. It operates within a defined
+domain boundary, has a stable data model, embedded validation, and clear
+access mechanisms. It takes three forces converging: **stable semantics**,
+**embedded governance**, and a **clearly defined consumer purpose**. At that
+point data stops being a by-product of systems and becomes decision
+infrastructure: the focus shifts from delivering outputs to maintaining
+something others can rely on repeatedly.
+
+## What it isn't
+| Looks like one | Why it isn't | What a product adds |
+|---|---|---|
+| **A dataset** | Storage alone is not productisation. A dataset can be well-modelled and queryable and still lack stewardship, FAIR attributes (findable, accessible, interoperable, reusable), and consistent governance. | Explicit ownership, defined service expectations, embedded quality controls, long-term accountability. |
+| **A dashboard or report** | A consumption layer: it interprets and visualises, it doesn't define or govern the underlying logic. | The governed, foundational logic beneath the interface: stable definitions, governed access, consistent metrics. Prevents duplication and inconsistency. |
+| **A pipeline** | Movement is not ownership. A pipeline delivers a table; it can't guarantee semantic consistency or long-term quality. | Durable, reliable consumption with measurable quality standards and accountability. Pipelines introduce motion; products introduce durability. |
+
+## Anatomy
+- **Input contracts**: explicit schemas and validation rules that protect against upstream volatility.
+- **Transformations & semantics**: encoded business rules and standardised definitions that prevent interpretive drift.
+- **Quality signals**: continuous monitoring and measurable guarantees (the SLOs from Activation week).
+- **Metadata**: first-class surface area for discoverability: documentation, lineage, catalogue indexing.
+- **Embedded governance**: access controls, privacy safeguards, regulatory alignment built in structurally, not bolted on.
+- **Output ports**: where consumers read (see [[data-product-activation]]).
+
+## Canonical core and output projections
+The **canonical core** is an authoritative, stable model of entities and
+metrics: a single source of truth that stops teams reinventing logic.
+**Projections** adapt it to consumers without touching the core definition:
+a near-real-time API for operations, flexible analytical tables for
+analytics, standardised auditable extracts for compliance. The strategy is
+to isolate projections from the foundational model: the projection changes
+with the consumer; the definition never does.
+
+## Three types
+| Type | Purpose | Value comes from |
+|---|---|---|
+| **Source-aligned** | Expose domain data in a reusable, governed form close to the operational system, without heavy transformation. | Stability and reusability: high-fidelity entities, schema standardisation, structural validation, input contracts. |
+| **Aggregate** | Consolidate logic from multiple domain sources into standardised measures, derived entities, cross-domain views. Encodes *how revenue is calculated, how churn is measured, how KPIs roll up*. | Semantic discipline and quality thresholds. Its reliability drives organisational trust in metrics. |
+| **Consumer-aligned** | Purpose-built for a specific use case or decision context: regulatory reporting, ML features, embedded analytics, operational decision engines. Defined by latency expectations, access interfaces, service guarantees. | Intentional alignment with consumption patterns, while relying on stable source-aligned and aggregate products upstream. |
+
+At Meridian, the metric tree (revenue → bookings → conversion) is an
+**aggregate** product; the Sales Funnel Accelerator dashboard is a
+**consumer-aligned** projection of it; the raw CRM extract would be a
+**source-aligned** product if it had a contract and an owner.`,
+    source: "Modern Data 101 (Defining the True Data Product; Anatomy; Canonical Core; product types), from the user's notes.",
+  },
 ];
+

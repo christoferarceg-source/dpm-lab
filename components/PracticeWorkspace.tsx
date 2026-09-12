@@ -237,14 +237,14 @@ function ExercisePanel({
           <button
             onClick={() => onRun(false)}
             disabled={running}
-            className="px-4 py-2 rounded-md text-sm font-medium border border-border bg-surface hover:bg-surface-2 disabled:opacity-50"
+            className="px-4 py-2.5 rounded-xl text-sm font-semibold border-2 border-border bg-surface hover:border-accent disabled:opacity-50"
           >
             Run
           </button>
           <button
             onClick={() => onRun(true)}
             disabled={running}
-            className="px-4 py-2 rounded-md text-sm font-medium bg-accent text-accent-fg hover:opacity-90 disabled:opacity-50"
+            className="px-5 py-2.5 rounded-xl text-sm font-semibold bg-accent text-accent-fg hover:opacity-90 disabled:opacity-50 node-shadow"
           >
             {running ? "Running…" : "Run & Check"}
           </button>

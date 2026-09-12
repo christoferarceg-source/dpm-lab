@@ -12,6 +12,14 @@ import type { Lesson, LessonItem } from "@/lib/types";
 
 const MAX_HEARTS = 3;
 
+const KIND_LABEL: Record<string, string> = {
+  mcq: "Choose one",
+  truefalse: "True or false",
+  fill: "Fill the blank",
+  match: "Match",
+  order: "Order",
+};
+
 type Phase = "answer" | "feedback" | "complete" | "failed";
 
 type State = {
@@ -209,10 +217,13 @@ export function LessonPlayer({ lesson }: { lesson: Lesson }) {
           ))}
         </div>
       </div>
-      <p className="text-center text-[0.7rem] uppercase tracking-wide text-muted">
-        {unit.week} · {lesson.title}
-        {s.requeued.has(itemIdx) && s.pos >= lesson.items.length ? " · one more time" : ""}
-      </p>
+      <div className="max-w-2xl w-full mx-auto px-5 flex items-center justify-between text-[0.7rem] uppercase tracking-wide text-muted">
+        <span className="truncate">{lesson.title}</span>
+        <span className="shrink-0 tabular-nums">
+          {item.kind === "concept" ? "Concept" : `${KIND_LABEL[item.kind]} · ${Math.min(answeredCount + 1, scorable)} of ${scorable}`}
+          {s.requeued.has(itemIdx) && s.pos >= lesson.items.length ? " · again" : ""}
+        </span>
+      </div>
 
       {/* item */}
       <div className="flex-1 px-5 py-6 max-w-2xl w-full mx-auto">
@@ -224,7 +235,10 @@ export function LessonPlayer({ lesson }: { lesson: Lesson }) {
         <div className="max-w-2xl w-full mx-auto px-5 space-y-3">
           {locked && (
             <div className={`animate-slide-up ${s.lastCorrect ? "text-success" : "text-danger"}`}>
-              <p className="font-semibold text-lg">{s.lastCorrect ? "Correct!" : "Not quite"}</p>
+              <p className="font-semibold text-lg flex items-center gap-2">
+                <span className={`w-6 h-6 rounded-full flex items-center justify-center text-sm text-white ${s.lastCorrect ? "bg-success" : "bg-danger"}`}>{s.lastCorrect ? "✓" : "✕"}</span>
+                {s.lastCorrect ? "Correct!" : "Not quite"}
+              </p>
               {!s.lastCorrect && right && (
                 <p className="text-sm">
                   <span className="font-semibold">Answer:</span> {right}
