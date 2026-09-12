@@ -34,7 +34,7 @@ export function KbEntryView({ slug }: { slug: string }) {
         <p className="text-muted mt-2">{entry.summary}</p>
         <p className="text-xs text-muted mt-2">
           {ix ? `${ix.readMinutes} min read` : ""}
-          {hydrated && data.reads[slug] ? " · read" : ""}
+          {hydrated && data.reads[slug] ? " · you have read this" : ""}
         </p>
       </header>
 

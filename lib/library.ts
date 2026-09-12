@@ -25,7 +25,7 @@ export const libraryParts: LibraryPart[] = [
     title: "The role and the product",
     kicker: "Start here",
     intro:
-      "Before the frameworks, two definitions that everything else hangs on: what a Data Product Manager actually owns, and what makes a data asset a *product* rather than a dataset, a dashboard, or a pipeline. Then the four ways this job inverts ordinary product management, and a ladder for judging how mature a data organisation is.",
+      "Before the frameworks, two definitions that everything else hangs on: what a Data Product Manager actually owns, and what makes a data asset a product rather than a dataset, a dashboard, or a pipeline. Then the four ways this job inverts ordinary product management, and a ladder for judging how mature a data organisation is.",
     entries: ["what-is-a-data-product-manager", "what-is-a-data-product", "four-key-shifts", "data-product-maturity-stages"],
   },
   {

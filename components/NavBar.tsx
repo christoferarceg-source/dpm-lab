@@ -7,7 +7,7 @@ const tabs = [
   { href: "/", label: "Learn", icon: PathIcon, match: (p: string) => p === "/" || p.startsWith("/chapters") || p.startsWith("/lesson") },
   { href: "/practice", label: "Practice", icon: LabIcon, match: (p: string) => p.startsWith("/practice") },
   { href: "/review", label: "Review", icon: CardsIcon, match: (p: string) => p.startsWith("/review") },
-  { href: "/profile", label: "Profile", icon: UserIcon, match: (p: string) => p.startsWith("/profile") || p.startsWith("/kb") },
+  { href: "/profile", label: "Profile", icon: UserIcon, match: (p: string) => p.startsWith("/profile") },
 ];
 
 function PathIcon({ active }: { active: boolean }) {
@@ -71,7 +71,12 @@ export function NavBar() {
                 </Link>
               );
             })}
-            <Link href="/kb" className="px-3 py-1.5 rounded-md text-sm text-muted hover:text-fg hover:bg-surface-2">
+            <Link
+              href="/kb"
+              className={`px-3 py-1.5 rounded-md text-sm transition-colors ${
+                pathname.startsWith("/kb") ? "bg-accent-soft text-accent font-medium" : "text-muted hover:text-fg hover:bg-surface-2"
+              }`}
+            >
               Library
             </Link>
           </nav>
@@ -80,7 +85,7 @@ export function NavBar() {
       <nav className="sm:hidden fixed bottom-0 inset-x-0 z-40 bg-surface border-t border-border safe-bottom pt-1.5">
         <ul className="grid grid-cols-4">
           {tabs.map((t) => {
-            const active = t.match(pathname);
+            const active = t.match(pathname) || (t.href === "/profile" && pathname.startsWith("/kb"));
             const Icon = t.icon;
             return (
               <li key={t.href}>
