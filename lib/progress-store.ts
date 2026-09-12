@@ -36,10 +36,12 @@ export type Attempt = {
   at: string;
 };
 
-export type QuizAnswer = {
-  chosen: number;
-  correct: boolean;
-  at: string;
+export type LessonProgress = {
+  completedAt: string;
+  completions: number;
+  /** 0–1, best accuracy across completions. */
+  bestAccuracy: number;
+  perfect: boolean;
 };
 
 export type ProgressData = {
@@ -48,8 +50,8 @@ export type ProgressData = {
   exercises: Record<string, ExerciseProgress>;
   attempts: Attempt[];
   srs: Record<string, SrsState>;
-  /** Latest answer per quiz question id. */
-  quiz: Record<string, QuizAnswer>;
+  /** Completed micro-lessons by lesson id. */
+  lessons: Record<string, LessonProgress>;
   streak: { current: number; lastActiveDate: string | null };
 };
 
@@ -60,7 +62,7 @@ export function emptyProgress(): ProgressData {
     exercises: {},
     attempts: [],
     srs: {},
-    quiz: {},
+    lessons: {},
     streak: { current: 0, lastActiveDate: null },
   };
 }
@@ -138,17 +140,21 @@ export function applyReview(data: ProgressData, cardId: string, quality: Quality
   return touchStreak({ ...data, srs: { ...data.srs, [cardId]: review(prev, quality) } });
 }
 
-export function applyQuizAnswer(data: ProgressData, questionId: string, chosen: number, correct: boolean): ProgressData {
+export function applyLessonComplete(data: ProgressData, lessonId: string, accuracy: number): ProgressData {
+  const prev = data.lessons[lessonId];
+  const best = Math.max(prev?.bestAccuracy ?? 0, accuracy);
   return touchStreak({
     ...data,
-    quiz: { ...data.quiz, [questionId]: { chosen, correct, at: new Date().toISOString() } },
+    lessons: {
+      ...data.lessons,
+      [lessonId]: {
+        completedAt: new Date().toISOString(),
+        completions: (prev?.completions ?? 0) + 1,
+        bestAccuracy: best,
+        perfect: best >= 1,
+      },
+    },
   });
-}
-
-export function clearQuizAnswers(data: ProgressData, questionIds: string[]): ProgressData {
-  const quiz = { ...data.quiz };
-  for (const id of questionIds) delete quiz[id];
-  return { ...data, quiz };
 }
 
 export function dueCards(data: ProgressData, cards: Flashcard[]): Flashcard[] {
@@ -219,18 +225,12 @@ export function useProgress() {
     [update]
   );
 
-  const recordQuizAnswer = useCallback(
-    (questionId: string, chosen: number, correct: boolean) =>
-      update((d) => applyQuizAnswer(d, questionId, chosen, correct)),
-    [update]
-  );
-
-  const resetQuiz = useCallback(
-    (questionIds: string[]) => update((d) => clearQuizAnswers(d, questionIds)),
+  const recordLessonComplete = useCallback(
+    (lessonId: string, accuracy: number) => update((d) => applyLessonComplete(d, lessonId, accuracy)),
     [update]
   );
 
   const reset = useCallback(() => update(() => emptyProgress()), [update]);
 
-  return { data, hydrated, recordAttempt, recordReview, recordQuizAnswer, resetQuiz, reset };
+  return { data, hydrated, recordAttempt, recordReview, recordLessonComplete, reset };
 }

@@ -2,31 +2,31 @@
 
 **Live:** https://christoferarceg-source.github.io/dpm-lab/
 
-A personal learning tool for **Data Product Management**, told as a story:
-your first six weeks as the first Data PM at *Meridian*, a fictional B2B
-software company. Each week follows one stage of the 6-Week Data Products
-Playbook and gives you a situation, the frameworks it needs, decisions to
-make, and the SQL to prove your answer. The data has real problems planted
-in it.
+Learn Data Product Management the way Duolingo teaches languages: one
+concept, five quick interactions, about a minute. The story is your first six
+weeks as the first Data PM at *Meridian*, a fictional B2B software company.
+Each week is a unit on the path; each unit ends in a Lab with real SQL and
+Python on Meridian's data, which has problems planted in it.
 
 ## What's in it
 
-- **Six chapters** (`/chapters/1`–`6`): brief → readings → decision quiz →
-  build (SQL, optional Python) → debrief. The home page tracks where you are
-  and what to do next.
-- **Decision quizzes** (33 questions): judgment scenarios, concept checks,
-  and read-the-SQL questions. Every option has a rationale.
-- **SQL ladder** (30 exercises, real SQLite in the browser via sql.js):
-  warm-ups, CTEs, window functions (ROW_NUMBER, LAG/LEAD, frames), funnel
-  and cohort analysis, data-quality audits, adoption metrics, root cause,
-  and revenue reconciliation.
-- **Python** (8 exercises, pandas in the browser via Pyodide): twins of the
-  chapter 1–2 warm-ups. The rest of the ladder is the next pass.
-- **Knowledge base** (18 entries) seeded from the PRD, the Playbook, State of
-  Data Products Q2 2026, the Big Book of Data Science, plus three
-  synthesized entries on data quality, funnel analysis, and the SQL toolkit.
+- **Learn** (`/`): a path of 6 units × 5 one-minute lessons. Each lesson =
+  a concept card + five interactions (multiple choice, true/false, fill the
+  blank, match pairs, put in order, spot the SQL bug) with instant feedback
+  and an explanation. Three hearts per lesson; run out and you review and
+  retry. Missed items come back once at the end of the lesson.
+- **Labs**: a node at the end of every unit opens the real editor. 30 SQL
+  exercises (sql.js in the browser) from warm-ups to window functions,
+  data-quality audits, root cause, and reconciliation; 8 pandas exercises
+  (Pyodide) mirroring the first two units.
+- **XP and levels**: 10 XP per lesson, +5 for a perfect run, 20 XP per Lab
+  exercise, 100 XP per level. The Profile tab shows level, streak, and
+  progress per unit.
 - **Review**: 29 SM-2 spaced-repetition flashcards.
-- **Progress** lives in the browser's localStorage (no account yet).
+- **Story** (`/chapters/n`) and **Library** (`/kb`, 18 entries): the briefs,
+  debriefs, and reference notes behind the lessons.
+- Mobile-first: bottom tab bar on phones, top nav on desktop. Progress lives
+  in the browser's localStorage (no account yet).
 
 ## The dataset
 
@@ -58,7 +58,7 @@ jsdelivr and caches it. SQL is fully self-hosted.
 ## Verify
 
 ```bash
-npm test                 # graders end-to-end in Node (sql.js + Pyodide), content integrity, SM-2, chapter progress
+npm test                 # graders end-to-end in Node (sql.js + Pyodide), lesson/content integrity, XP, SM-2, progress
 npm run verify:answers   # regenerate content/expected-*.json from each exercise's reference solution
 npm run diagnose         # print dataset row counts and the planted signals
 npm run lint
@@ -74,10 +74,10 @@ npm run deploy       # static export with basePath /dpm-lab, pushed to the gh-pa
 ## Layout
 
 ```
-app/                  / (six weeks), /chapters/[n], /practice/{sql,python}, /kb, /kb/[slug], /review
+app/                  / (path), /lesson/[id], /chapters/[n], /practice, /practice/{sql,python}, /profile, /kb, /review
 content/
+  lessons.ts          30 micro-lessons (concept + 5 items each), units and colours
   story.ts            company, cast, six chapters (brief, readings, debrief)
-  quiz.ts             decision-quiz bank
   kb.ts               knowledge-base entries; flashcards.ts the review deck
   dataset.ts          seeded generator + schema + table docs
   exercises-sql.ts    SQL ladder with reference solutions
@@ -86,10 +86,11 @@ content/
 lib/
   sql-engine.ts       sql.js loader, runner, grader
   py-engine.ts        Pyodide loader, runner (setup → user code → JSON serialize), grader
-  chapter-progress.ts chapter completion / next-step logic
-  progress-store.ts   localStorage store (exercises, attempts, quiz answers, SRS) via useSyncExternalStore
-  compare.ts, srs.ts, kb.ts, use-hash.ts, base-path.ts
-components/           ChapterView, Quiz, PracticeWorkspace, CodeEditor, TableReference, ResultTable, Markdown, NavBar
+  chapter-progress.ts unit progress, next lesson, totals
+  xp.ts               XP and level rules (derived from progress, never stored)
+  progress-store.ts   localStorage store (lessons, exercises, attempts, SRS) via useSyncExternalStore
+  compare.ts, srs.ts, kb.ts, use-hash.ts, base-path.ts, shuffle.ts
+components/           LearnPath, LessonPlayer, lesson-items, Shell, NavBar, ChapterView, PracticeWorkspace, CodeEditor, TableReference, ResultTable, Markdown
 scripts/
   compute-expected.mts  source of truth for expected answers
   test-graders.mts      headless test suite
@@ -98,9 +99,11 @@ scripts/
 
 ## Adding content
 
+- **Lesson**: append to the unit's array in `content/lessons.ts` using the
+  helpers (`concept`, `mcq`, `tf`, `fill`, `match`, `order`). Keep one
+  concept card first and five interactions after it; `npm test` enforces
+  the shape, unique ids, valid answers, and real `kbSlug`s.
 - **Chapter text**: edit `content/story.ts`.
-- **Quiz question**: append to `content/quiz.ts` with a `chapter`, four
-  options, `correctIndex`, and a `kbSlug`. `npm test` checks all of that.
 - **SQL exercise**: append to `content/exercises-sql.ts` with a `chapter`,
   `starterQuery`, and reference `solution`; run `npm run verify:answers`.
   Set `orderMatters: true` when the prompt specifies an ORDER BY.

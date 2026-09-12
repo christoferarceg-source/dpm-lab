@@ -1,75 +1,58 @@
-import { chapters } from "@/content/story";
-import { quizForChapter } from "@/content/quiz";
+import { units, allLessons } from "@/content/lessons";
 import { sqlExercisesForChapter } from "@/content/exercises-sql";
 import { pythonExercisesForChapter } from "@/content/exercises-python";
 import type { ProgressData } from "./progress-store";
-import type { ChapterNumber } from "./types";
+import type { ChapterNumber, Lesson } from "./types";
 
-export type ChapterStep = "brief" | "quiz" | "build" | "debrief";
-
-export type ChapterProgress = {
+export type UnitProgress = {
   number: ChapterNumber;
-  quizTotal: number;
-  quizAnswered: number;
-  quizCorrect: number;
-  sqlTotal: number;
-  sqlSolved: number;
-  pyTotal: number;
-  pySolved: number;
-  /** 0–1, quiz answered + SQL solved (Python is optional extra credit). */
+  lessonsTotal: number;
+  lessonsDone: number;
+  labTotal: number;
+  labDone: number;
+  /** 0–1 over lessons only; labs are bonus. */
   fraction: number;
   complete: boolean;
-  nextStep: ChapterStep;
+  nextLessonId: string | null;
 };
 
-export function chapterProgress(data: ProgressData, number: ChapterNumber): ChapterProgress {
-  const quiz = quizForChapter(number);
-  const sql = sqlExercisesForChapter(number);
-  const py = pythonExercisesForChapter(number);
-  const quizAnswered = quiz.filter((q) => data.quiz[q.id]).length;
-  const quizCorrect = quiz.filter((q) => data.quiz[q.id]?.correct).length;
-  const sqlSolved = sql.filter((e) => data.exercises[e.slug]?.status === "solved").length;
-  const pySolved = py.filter((e) => data.exercises[e.slug]?.status === "solved").length;
-  const total = quiz.length + sql.length;
-  const done = quizAnswered + sqlSolved;
-  const complete = total > 0 && done === total;
-  const nextStep: ChapterStep =
-    quizAnswered === 0 && sqlSolved === 0
-      ? "brief"
-      : quizAnswered < quiz.length
-        ? "quiz"
-        : sqlSolved < sql.length
-          ? "build"
-          : "debrief";
+export function unitProgress(data: ProgressData, number: ChapterNumber): UnitProgress {
+  const unit = units.find((u) => u.number === number)!;
+  const done = unit.lessons.filter((l) => data.lessons[l.id]);
+  const labs = [...sqlExercisesForChapter(number), ...pythonExercisesForChapter(number)];
+  const labDone = labs.filter((e) => data.exercises[e.slug]?.status === "solved").length;
+  const next = unit.lessons.find((l) => !data.lessons[l.id]);
   return {
     number,
-    quizTotal: quiz.length,
-    quizAnswered,
-    quizCorrect,
-    sqlTotal: sql.length,
-    sqlSolved,
-    pyTotal: py.length,
-    pySolved,
-    fraction: total === 0 ? 0 : done / total,
-    complete,
-    nextStep,
+    lessonsTotal: unit.lessons.length,
+    lessonsDone: done.length,
+    labTotal: labs.length,
+    labDone,
+    fraction: unit.lessons.length ? done.length / unit.lessons.length : 0,
+    complete: unit.lessons.length > 0 && done.length === unit.lessons.length,
+    nextLessonId: next?.id ?? null,
   };
 }
 
-export function allChapterProgress(data: ProgressData): ChapterProgress[] {
-  return chapters.map((c) => chapterProgress(data, c.number));
+export function allUnitProgress(data: ProgressData): UnitProgress[] {
+  return units.map((u) => unitProgress(data, u.number));
 }
 
-/** The chapter to continue: first incomplete one, or the last if all done. */
-export function currentChapter(data: ProgressData): ChapterNumber {
-  const all = allChapterProgress(data);
-  const firstOpen = all.find((c) => !c.complete);
-  return (firstOpen?.number ?? 6) as ChapterNumber;
+/** First lesson not yet completed, in path order; null when everything is done. */
+export function nextLesson(data: ProgressData): Lesson | null {
+  return allLessons.find((l) => !data.lessons[l.id]) ?? null;
 }
 
-export const STEP_LABEL: Record<ChapterStep, string> = {
-  brief: "Read the brief",
-  quiz: "Take the decision quiz",
-  build: "Build the SQL",
-  debrief: "Read the debrief",
-};
+export function currentUnit(data: ProgressData): ChapterNumber {
+  return (nextLesson(data)?.unit ?? 6) as ChapterNumber;
+}
+
+export function totals(data: ProgressData): { lessonsDone: number; lessonsTotal: number; labsDone: number; labsTotal: number } {
+  const up = allUnitProgress(data);
+  return {
+    lessonsDone: up.reduce((s, u) => s + u.lessonsDone, 0),
+    lessonsTotal: up.reduce((s, u) => s + u.lessonsTotal, 0),
+    labsDone: up.reduce((s, u) => s + u.labDone, 0),
+    labsTotal: up.reduce((s, u) => s + u.labTotal, 0),
+  };
+}

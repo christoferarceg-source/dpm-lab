@@ -11,15 +11,15 @@
 // = None) is rejected.
 //
 // Also covers compare.ts, srs.ts, chapter-progress.ts, and content
-// integrity (every quiz/exercise points at a real KB slug, quiz answers are
-// in range, expected JSON is in sync with content).
+// integrity (every lesson item/exercise points at a real KB slug, lessons are
+// well-formed, expected JSON is in sync with content).
 
 import initSqlJs from "sql.js";
 import { loadPyodide } from "pyodide";
 import { generateDataset, SCHEMA_SQL, buildSeedSql } from "../content/dataset";
 import { sqlExercises } from "../content/exercises-sql";
 import { pythonExercises } from "../content/exercises-python";
-import { quizQuestions } from "../content/quiz";
+import { units, allLessons } from "../content/lessons";
 import { chapters } from "../content/story";
 import { flashcards } from "../content/flashcards";
 import { kbEntries } from "../content/kb";
@@ -29,8 +29,10 @@ import { gradeSql } from "../lib/sql-engine";
 import { gradePython, SETUP_CODE, SERIALIZE_CODE } from "../lib/py-engine";
 import { review, initialSrs } from "../lib/srs";
 import { deepEqual } from "../lib/compare";
-import { emptyProgress, applyQuizAnswer, applyAttempt } from "../lib/progress-store";
-import { chapterProgress, currentChapter } from "../lib/chapter-progress";
+import { emptyProgress, applyLessonComplete, applyAttempt } from "../lib/progress-store";
+import { unitProgress, currentUnit, nextLesson } from "../lib/chapter-progress";
+import { computeXp, levelFor } from "../lib/xp";
+import { shuffledSteps, isCorrect, initialAnswer } from "../components/lesson-items";
 import type { SqlExpected } from "../lib/types";
 
 let failures = 0;
@@ -55,15 +57,27 @@ for (const ex of pythonExercises) {
 }
 check("no stale SQL expected entries", Object.keys(sqlExp).every((k) => sqlExercises.some((e) => e.slug === k)));
 check("no stale Python expected entries", Object.keys(pyExp).every((k) => pythonExercises.some((e) => e.slug === k)));
-for (const q of quizQuestions) {
-  check(`${q.id}: 4 options, valid correctIndex, kbSlug exists`, q.options.length === 4 && q.correctIndex >= 0 && q.correctIndex < 4 && kbSlugs.has(q.kbSlug));
+// lessons: 6 units × 5 lessons × (1 concept + 5 items); every item well-formed
+check("6 units of 5 lessons", units.length === 6 && units.every((u) => u.lessons.length === 5), units.map((u) => u.lessons.length).join(","));
+const itemIds = new Set<string>();
+for (const l of allLessons) {
+  check(`${l.id}: concept card first, 5 interactions`, l.items[0]?.kind === "concept" && l.items.length === 6 && l.items.slice(1).every((it) => it.kind !== "concept"), l.items.map((i) => i.kind).join(","));
+  for (const it of l.items) {
+    itemIds.add(it.id);
+    if (it.kbSlug) check(`${it.id}: kbSlug exists`, kbSlugs.has(it.kbSlug), it.kbSlug);
+    if (it.kind === "mcq") check(`${it.id}: 4 options, valid correct`, it.options.length === 4 && it.correct >= 0 && it.correct < 4 && (!it.optionNotes || it.optionNotes.length === 4));
+    if (it.kind === "fill") check(`${it.id}: blank present, answer in bank`, it.prompt.includes("___") && it.bank.includes(it.answer) && new Set(it.bank).size === it.bank.length);
+    if (it.kind === "match") check(`${it.id}: 3-4 unique pairs`, it.pairs.length >= 3 && it.pairs.length <= 4 && new Set(it.pairs.map((p) => p[1])).size === it.pairs.length);
+    if (it.kind === "order") check(`${it.id}: 3-4 steps, shuffle is a permutation`, it.steps.length >= 3 && it.steps.length <= 4 && [...shuffledSteps(it)].sort().join() === it.steps.map((_, i) => i).join());
+  }
 }
+check("lesson item ids unique", itemIds.size === allLessons.reduce((n, l) => n + l.items.length, 0));
 for (const c of chapters) {
   check(`chapter ${c.number}: readings exist`, c.readings.every((r) => kbSlugs.has(r)), c.readings.filter((r) => !kbSlugs.has(r)).join(","));
-  check(`chapter ${c.number}: has quiz and SQL`, quizQuestions.some((q) => q.chapter === c.number) && sqlExercises.some((e) => e.chapter === c.number));
+  check(`chapter ${c.number}: has lessons and SQL`, units.some((u) => u.number === c.number && u.lessons.length > 0) && sqlExercises.some((e) => e.chapter === c.number));
 }
 check("flashcards point at real KB entries", flashcards.every((f) => kbSlugs.has(f.kbSlug)));
-check("unique slugs/ids", new Set([...sqlExercises.map((e) => e.slug), ...pythonExercises.map((e) => e.slug), ...quizQuestions.map((q) => q.id), ...flashcards.map((f) => f.id)]).size === sqlExercises.length + pythonExercises.length + quizQuestions.length + flashcards.length);
+check("unique slugs/ids", new Set([...sqlExercises.map((e) => e.slug), ...pythonExercises.map((e) => e.slug), ...allLessons.map((l) => l.id), ...flashcards.map((f) => f.id)]).size === sqlExercises.length + pythonExercises.length + allLessons.length + flashcards.length);
 
 // ---------- SQL ----------
 console.log("\n== SQL grader ==");
@@ -118,12 +132,27 @@ check("deepEqual numeric string vs number", deepEqual("84000", 84000));
 }
 {
   let d = emptyProgress();
-  check("fresh progress: current chapter is 1, next step brief", currentChapter(d) === 1 && chapterProgress(d, 1).nextStep === "brief");
-  for (const q of quizQuestions.filter((q) => q.chapter === 1)) d = applyQuizAnswer(d, q.id, q.correctIndex, true);
-  check("after quiz: next step is build", chapterProgress(d, 1).nextStep === "build");
+  check("fresh progress: unit 1, first lesson u1-l1", currentUnit(d) === 1 && nextLesson(d)?.id === "u1-l1");
+  for (const l of units[0].lessons) d = applyLessonComplete(d, l.id, l.id === "u1-l1" ? 0.8 : 1);
+  const p1 = unitProgress(d, 1);
+  check("unit 1 complete after 5 lessons; next is u2-l1", p1.complete && nextLesson(d)?.id === "u2-l1", JSON.stringify(p1));
+  const xp1 = computeXp(d);
+  check("XP: 4 perfect (15) + 1 imperfect (10) = 70", xp1.total === 70, String(xp1.total));
   for (const e of sqlExercises.filter((e) => e.chapter === 1)) d = applyAttempt(d, e.slug, "sql", "x", true);
-  const p1 = chapterProgress(d, 1);
-  check("after SQL: chapter 1 complete, current chapter is 2", p1.complete && currentChapter(d) === 2, JSON.stringify(p1));
+  const xp2 = computeXp(d);
+  check("XP: +20 per lab exercise", xp2.total === 70 + 20 * sqlExercises.filter((e) => e.chapter === 1).length, String(xp2.total));
+  check("level math", levelFor(150).level === 2 && levelFor(150).toNext === 50 && levelFor(0).level === 1);
+  // grading helpers
+  const mcqItem = allLessons[0].items.find((i) => i.kind === "mcq")!;
+  check("isCorrect mcq", mcqItem.kind === "mcq" && isCorrect(mcqItem, { kind: "mcq", choice: mcqItem.correct }) && !isCorrect(mcqItem, { kind: "mcq", choice: (mcqItem.correct + 1) % 4 }));
+  const orderItem = allLessons.flatMap((l) => l.items).find((i) => i.kind === "order")!;
+  if (orderItem.kind === "order") {
+    const shuf = shuffledSteps(orderItem);
+    const rightSeq = orderItem.steps.map((_, pos) => shuf.indexOf(pos));
+    check("isCorrect order (right sequence)", isCorrect(orderItem, { kind: "order", sequence: rightSeq }));
+    check("isCorrect order (reversed)", !isCorrect(orderItem, { kind: "order", sequence: [...rightSeq].reverse() }));
+  }
+  check("initialAnswer kinds", initialAnswer(mcqItem).kind === "mcq" && initialAnswer(allLessons[0].items[0]).kind === "concept");
 }
 
 // ---------- Python ----------

@@ -1,74 +1,80 @@
+"use client";
+
 import Link from "next/link";
+import { units } from "@/content/lessons";
+import { sqlExercisesForChapter } from "@/content/exercises-sql";
+import { pythonExercisesForChapter } from "@/content/exercises-python";
+import { useProgress, type ExerciseStatus } from "@/lib/progress-store";
 
-const live = [
-  {
-    href: "/practice/sql",
-    title: "SQL",
-    blurb: "29 exercises across the six chapters: warm-ups, CTEs, window functions, data-quality audits, adoption trends, root cause, and revenue reconciliation.",
-  },
-  {
-    href: "/practice/python",
-    title: "Python (pandas)",
-    blurb: "pandas twins of the chapter 1–2 warm-ups: filters, merges, groupby, named aggregation. The rest of the ladder follows.",
-  },
-  {
-    href: "/review",
-    title: "Spaced Review",
-    blurb: "Flashcards over the knowledge base, scheduled with SM-2 so you revisit what you're about to forget.",
-  },
-];
-
-const soon = [
-  {
-    title: "Stakeholder Simulation",
-    blurb: "A simulated CFO / data engineer / sales lead with a hidden problem. You ask questions; you're scored on what you uncovered and what you missed.",
-  },
-  {
-    title: "Incident RCA Case",
-    blurb: "A broken data product (metric mismatch, stale pipeline, lost trust). Work the root cause step by step against a reference analysis.",
-  },
-  {
-    title: "Teach-back",
-    blurb: "Explain a concept in your own words; get it checked against your KB and the source docs for gaps.",
-  },
-];
+function Dot({ status }: { status: ExerciseStatus }) {
+  const cls = status === "solved" ? "bg-success" : status === "attempted" ? "bg-warn" : "bg-border";
+  return <span className={`w-2 h-2 rounded-full shrink-0 ${cls}`} />;
+}
 
 export default function PracticeIndex() {
+  const { data, hydrated } = useProgress();
+  const statusOf = (slug: string): ExerciseStatus => (hydrated ? (data.exercises[slug]?.status ?? "not_started") : "not_started");
+
   return (
-    <div className="space-y-8">
+    <div className="space-y-6">
       <div>
-        <h1 className="text-2xl font-semibold tracking-tight">Practice</h1>
-        <p className="text-muted mt-1">The exercise ladder on its own. For the story and the decision quizzes, start from <Link href="/" className="text-accent underline underline-offset-2">Six Weeks</Link>.</p>
+        <h1 className="text-xl sm:text-2xl font-semibold tracking-tight">Labs</h1>
+        <p className="text-sm text-muted mt-1">
+          Real SQLite and pandas in your browser, on Meridian&apos;s data. Each solved exercise earns 20 XP. Open the{" "}
+          <Link href="/practice/sql" className="text-accent underline underline-offset-2">
+            SQL workspace
+          </Link>{" "}
+          or the{" "}
+          <Link href="/practice/python" className="text-accent underline underline-offset-2">
+            Python workspace
+          </Link>{" "}
+          directly, or pick an exercise below.
+        </p>
       </div>
 
-      <section>
-        <h2 className="text-sm font-semibold uppercase tracking-wide text-muted mb-3">Available now</h2>
-        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-          {live.map((m) => (
-            <Link
-              key={m.href}
-              href={m.href}
-              className="block bg-surface border border-border rounded-xl p-5 hover:border-accent transition-colors"
-            >
-              <h3 className="font-semibold">{m.title}</h3>
-              <p className="text-sm text-muted mt-1.5">{m.blurb}</p>
-            </Link>
-          ))}
-        </div>
-      </section>
-
-      <section>
-        <h2 className="text-sm font-semibold uppercase tracking-wide text-muted mb-3">Coming next</h2>
-        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-          {soon.map((m) => (
-            <div key={m.title} className="bg-surface-2/60 border border-dashed border-border rounded-xl p-5">
-              <h3 className="font-semibold text-muted">{m.title}</h3>
-              <p className="text-sm text-muted mt-1.5">{m.blurb}</p>
-              <p className="text-xs text-muted mt-3">Needs an LLM backend — wired up once an API key is added.</p>
+      {units.map((u) => {
+        const sql = sqlExercisesForChapter(u.number);
+        const py = pythonExercisesForChapter(u.number);
+        return (
+          <section key={u.number} className="bg-surface border border-border rounded-2xl overflow-hidden">
+            <div className="px-4 py-3 text-white flex items-center justify-between" style={{ background: u.color }}>
+              <p className="font-semibold text-sm">
+                {u.week} · {u.title}
+              </p>
+              <p className="text-xs opacity-90 tabular-nums">
+                {hydrated ? `${[...sql, ...py].filter((e) => statusOf(e.slug) === "solved").length}/${sql.length + py.length}` : `${sql.length + py.length}`} solved
+              </p>
             </div>
-          ))}
-        </div>
-      </section>
+            <div className="grid sm:grid-cols-2">
+              <ul className="p-2">
+                <li className="text-[0.7rem] uppercase tracking-wide text-muted px-3 pt-1 pb-1">SQL</li>
+                {sql.map((e) => (
+                  <li key={e.slug}>
+                    <Link href={`/practice/sql#${e.slug}`} className="flex items-center gap-3 px-3 py-2 rounded-md hover:bg-surface-2 text-sm">
+                      <Dot status={statusOf(e.slug)} />
+                      <span className="flex-1 min-w-0 break-words">{e.title}</span>
+                      <span className="text-[0.7rem] text-muted uppercase">{e.difficulty}</span>
+                    </Link>
+                  </li>
+                ))}
+              </ul>
+              <ul className="p-2 sm:border-l border-border">
+                <li className="text-[0.7rem] uppercase tracking-wide text-muted px-3 pt-1 pb-1">Python</li>
+                {py.length === 0 && <li className="text-sm text-muted px-3 py-2">Coming in the next pass.</li>}
+                {py.map((e) => (
+                  <li key={e.slug}>
+                    <Link href={`/practice/python#${e.slug}`} className="flex items-center gap-3 px-3 py-2 rounded-md hover:bg-surface-2 text-sm">
+                      <Dot status={statusOf(e.slug)} />
+                      <span className="flex-1 min-w-0 break-words">{e.title}</span>
+                      <span className="text-[0.7rem] text-muted uppercase">{e.difficulty}</span>
+                    </Link>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          </section>
+        );
+      })}
     </div>
   );
 }

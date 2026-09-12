@@ -168,3 +168,37 @@ body {
 .cm-editor.cm-focused {
   outline: 2px solid var(--accent-soft);
 }
+
+/* ---------- Duolingo-style lesson UI ---------- */
+.safe-bottom {
+  padding-bottom: calc(env(safe-area-inset-bottom, 0px) + 0.75rem);
+}
+@keyframes pop {
+  0% { transform: scale(0.96); opacity: 0; }
+  100% { transform: scale(1); opacity: 1; }
+}
+.animate-pop {
+  animation: pop 160ms ease-out;
+}
+@keyframes slide-up {
+  0% { transform: translateY(16px); opacity: 0; }
+  100% { transform: translateY(0); opacity: 1; }
+}
+.animate-slide-up {
+  animation: slide-up 180ms ease-out;
+}
+@keyframes wiggle {
+  0%, 100% { transform: translateX(0); }
+  25% { transform: translateX(-4px); }
+  75% { transform: translateX(4px); }
+}
+.animate-wiggle {
+  animation: wiggle 240ms ease-in-out;
+}
+.node-shadow {
+  box-shadow: 0 6px 0 0 var(--node-shadow, rgba(0, 0, 0, 0.18));
+}
+.node-shadow:active {
+  transform: translateY(4px);
+  box-shadow: 0 2px 0 0 var(--node-shadow, rgba(0, 0, 0, 0.18));
+}
