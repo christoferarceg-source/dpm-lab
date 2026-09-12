@@ -36,12 +36,20 @@ export type Attempt = {
   at: string;
 };
 
+export type QuizAnswer = {
+  chosen: number;
+  correct: boolean;
+  at: string;
+};
+
 export type ProgressData = {
   version: 1;
   user_id: string;
   exercises: Record<string, ExerciseProgress>;
   attempts: Attempt[];
   srs: Record<string, SrsState>;
+  /** Latest answer per quiz question id. */
+  quiz: Record<string, QuizAnswer>;
   streak: { current: number; lastActiveDate: string | null };
 };
 
@@ -52,6 +60,7 @@ export function emptyProgress(): ProgressData {
     exercises: {},
     attempts: [],
     srs: {},
+    quiz: {},
     streak: { current: 0, lastActiveDate: null },
   };
 }
@@ -129,6 +138,19 @@ export function applyReview(data: ProgressData, cardId: string, quality: Quality
   return touchStreak({ ...data, srs: { ...data.srs, [cardId]: review(prev, quality) } });
 }
 
+export function applyQuizAnswer(data: ProgressData, questionId: string, chosen: number, correct: boolean): ProgressData {
+  return touchStreak({
+    ...data,
+    quiz: { ...data.quiz, [questionId]: { chosen, correct, at: new Date().toISOString() } },
+  });
+}
+
+export function clearQuizAnswers(data: ProgressData, questionIds: string[]): ProgressData {
+  const quiz = { ...data.quiz };
+  for (const id of questionIds) delete quiz[id];
+  return { ...data, quiz };
+}
+
 export function dueCards(data: ProgressData, cards: Flashcard[]): Flashcard[] {
   return cards.filter((c) => isDue(data.srs[c.id]));
 }
@@ -197,7 +219,18 @@ export function useProgress() {
     [update]
   );
 
+  const recordQuizAnswer = useCallback(
+    (questionId: string, chosen: number, correct: boolean) =>
+      update((d) => applyQuizAnswer(d, questionId, chosen, correct)),
+    [update]
+  );
+
+  const resetQuiz = useCallback(
+    (questionIds: string[]) => update((d) => clearQuizAnswers(d, questionIds)),
+    [update]
+  );
+
   const reset = useCallback(() => update(() => emptyProgress()), [update]);
 
-  return { data, hydrated, recordAttempt, recordReview, reset };
+  return { data, hydrated, recordAttempt, recordReview, recordQuizAnswer, resetQuiz, reset };
 }

@@ -1,8 +1,9 @@
 "use client";
 
-// Shared practice UI for both SQL and Python. The page supplies the
-// exercise list plus `run` and `grade` functions; this component owns the
-// editor, run/check loop, feedback, and progress bookkeeping.
+// Shared practice UI for SQL and Python. The page supplies exercises plus
+// `run` and `grade`; this component owns the chapter-grouped sidebar,
+// editor, run/check loop, feedback, and progress bookkeeping. The active
+// exercise is the URL hash (#slug) so chapter pages can deep-link.
 
 import Link from "next/link";
 import dynamic from "next/dynamic";
@@ -10,7 +11,9 @@ import { useCallback, useMemo, useRef, useState, type ReactNode } from "react";
 import { Markdown } from "./Markdown";
 import { useProgress, type ExerciseStatus } from "@/lib/progress-store";
 import { getKbEntry } from "@/lib/kb";
-import type { Difficulty, DpmConnection, ExerciseKind } from "@/lib/types";
+import { setHash, useHash } from "@/lib/use-hash";
+import { chapters } from "@/content/story";
+import type { ChapterNumber, Difficulty, DpmConnection, ExerciseKind } from "@/lib/types";
 
 const CodeEditor = dynamic(() => import("./CodeEditor").then((m) => m.CodeEditor), {
   ssr: false,
@@ -19,6 +22,7 @@ const CodeEditor = dynamic(() => import("./CodeEditor").then((m) => m.CodeEditor
 
 export type WorkspaceExercise = {
   slug: string;
+  chapter: ChapterNumber;
   title: string;
   difficulty: Difficulty;
   prompt: string;
@@ -37,35 +41,34 @@ type Props = {
   kind: ExerciseKind;
   title: string;
   intro: ReactNode;
+  /** Rendered under the intro, e.g. a table reference. */
+  reference?: ReactNode;
   exercises: WorkspaceExercise[];
-  /** Called once before the first run; use it to warm up the runtime. */
   prepare?: (onStatus: (s: string) => void) => Promise<void>;
   run: (code: string) => Promise<RunOutcome>;
   grade: (slug: string, payload: unknown) => GradeOutcome;
   renderResult: (payload: unknown) => ReactNode;
 };
 
-const DIFF_LABEL: Record<Difficulty, string> = { intro: "Intro", core: "Core", stretch: "Stretch" };
+const DIFF_LABEL: Record<Difficulty, string> = { warmup: "Warm-up", core: "Core", advanced: "Advanced" };
 const DIFF_CLASS: Record<Difficulty, string> = {
-  intro: "bg-success-soft text-success",
+  warmup: "bg-success-soft text-success",
   core: "bg-accent-soft text-accent",
-  stretch: "bg-warn-soft text-warn",
+  advanced: "bg-warn-soft text-warn",
 };
 
 function StatusDot({ status }: { status: ExerciseStatus }) {
   const cls = status === "solved" ? "bg-success" : status === "attempted" ? "bg-warn" : "bg-border";
   const label = status === "solved" ? "Solved" : status === "attempted" ? "Attempted" : "Not started";
-  return <span className={`inline-block w-2 h-2 rounded-full ${cls}`} title={label} aria-label={label} />;
+  return <span className={`inline-block w-2 h-2 rounded-full shrink-0 ${cls}`} title={label} aria-label={label} />;
 }
 
 export function PracticeWorkspace(props: Props) {
-  const { exercises, title, intro } = props;
+  const { exercises, title, intro, reference } = props;
   const { data, hydrated } = useProgress();
-  const [activeSlug, setActiveSlug] = useState(exercises[0]?.slug);
-  const active = useMemo(() => exercises.find((e) => e.slug === activeSlug) ?? exercises[0], [exercises, activeSlug]);
+  const hash = useHash();
+  const active = useMemo(() => exercises.find((e) => e.slug === hash) ?? exercises[0], [exercises, hash]);
 
-  // Runtime warm-up is shared across exercises, so it lives here rather
-  // than in the per-exercise panel.
   const preparedRef = useRef(!props.prepare);
   const [prepStatus, setPrepStatus] = useState<string | null>(null);
   const ensurePrepared = useCallback(async () => {
@@ -77,38 +80,57 @@ export function PracticeWorkspace(props: Props) {
 
   const progressOf = (slug: string): ExerciseStatus => data.exercises[slug]?.status ?? "not_started";
   const solvedCount = exercises.filter((e) => progressOf(e.slug) === "solved").length;
+  const grouped = chapters
+    .map((c) => ({ chapter: c, items: exercises.filter((e) => e.chapter === c.number) }))
+    .filter((g) => g.items.length > 0);
+  const numberOf = new Map(exercises.map((e, i) => [e.slug, i + 1]));
 
   return (
-    <div className="grid gap-6 lg:grid-cols-[260px_minmax(0,1fr)]">
-      <aside className="lg:sticky lg:top-6 self-start min-w-0">
+    <div className="grid gap-6 lg:grid-cols-[280px_minmax(0,1fr)]">
+      <aside className="lg:sticky lg:top-6 self-start min-w-0 lg:max-h-[calc(100vh-3rem)] lg:overflow-y-auto">
         <h1 className="text-xl font-semibold tracking-tight">{title}</h1>
         <p className="text-sm text-muted mt-1">
           {hydrated ? `${solvedCount} / ${exercises.length} solved` : `${exercises.length} exercises`}
         </p>
-        <ol className="mt-4 space-y-1">
-          {exercises.map((e, i) => {
-            const isActive = e.slug === active.slug;
-            return (
-              <li key={e.slug}>
-                <button
-                  onClick={() => setActiveSlug(e.slug)}
-                  className={`w-full text-left px-3 py-2 rounded-md text-sm flex items-center gap-2.5 transition-colors ${
-                    isActive ? "bg-accent-soft text-accent" : "hover:bg-surface-2"
-                  }`}
-                >
-                  <StatusDot status={hydrated ? progressOf(e.slug) : "not_started"} />
-                  <span className="text-muted tabular-nums w-5">{i + 1}.</span>
-                  <span className="truncate min-w-0">{e.title}</span>
-                </button>
-              </li>
-            );
-          })}
-        </ol>
+        <div className="mt-4 space-y-4">
+          {grouped.map(({ chapter, items }) => (
+            <div key={chapter.number}>
+              <Link
+                href={`/chapters/${chapter.number}`}
+                className="block text-[0.7rem] uppercase tracking-wide text-muted hover:text-fg px-3 mb-1"
+              >
+                {chapter.week}
+              </Link>
+              <ol className="space-y-0.5">
+                {items.map((e) => {
+                  const isActive = e.slug === active.slug;
+                  const n = numberOf.get(e.slug);
+                  return (
+                    <li key={e.slug}>
+                      <button
+                        onClick={() => setHash(e.slug)}
+                        className={`w-full text-left px-3 py-1.5 rounded-md text-sm flex items-center gap-2.5 transition-colors ${
+                          isActive ? "bg-accent-soft text-accent" : "hover:bg-surface-2"
+                        }`}
+                      >
+                        <StatusDot status={hydrated ? progressOf(e.slug) : "not_started"} />
+                        <span className="text-muted tabular-nums w-5 shrink-0">{n}.</span>
+                        <span className="truncate min-w-0">{e.title}</span>
+                      </button>
+                    </li>
+                  );
+                })}
+              </ol>
+            </div>
+          ))}
+        </div>
       </aside>
 
       <section className="min-w-0 space-y-5">
-        <div className="text-sm text-muted">{intro}</div>
-        {/* Keyed by slug so editor/outcome state resets on switch without an effect. */}
+        <div className="text-sm text-muted space-y-3">
+          {intro}
+          {reference}
+        </div>
         <ExercisePanel
           key={active.slug}
           exercise={active}
@@ -147,6 +169,7 @@ function ExercisePanel({
   const [running, setRunning] = useState(false);
   const [outcome, setOutcome] = useState<RunOutcome | null>(null);
   const [gradeResult, setGradeResult] = useState<GradeOutcome | null>(null);
+  const chapter = chapters.find((c) => c.number === exercise.chapter);
 
   const onRun = useCallback(
     async (check: boolean) => {
@@ -180,6 +203,11 @@ function ExercisePanel({
   return (
     <>
       <div className="bg-surface border border-border rounded-xl p-5 space-y-4">
+        {chapter && (
+          <Link href={`/chapters/${chapter.number}`} className="text-xs text-muted hover:text-fg">
+            {chapter.week} · {chapter.title}
+          </Link>
+        )}
         <div className="flex flex-wrap items-center gap-2">
           <h2 className="text-lg font-semibold">{exercise.title}</h2>
           <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${DIFF_CLASS[exercise.difficulty]}`}>
@@ -213,10 +241,7 @@ function ExercisePanel({
           >
             Reset
           </button>
-          <button
-            onClick={() => setShowHint((s) => !s)}
-            className="px-3 py-2 rounded-md text-sm text-muted hover:text-fg ml-auto"
-          >
+          <button onClick={() => setShowHint((s) => !s)} className="px-3 py-2 rounded-md text-sm text-muted hover:text-fg ml-auto">
             {showHint ? "Hide hint" : "Hint"}
           </button>
         </div>
@@ -230,13 +255,11 @@ function ExercisePanel({
         <div
           role="status"
           className={`rounded-lg px-4 py-3 text-sm border ${
-            gradeResult.passed
-              ? "bg-success-soft text-success border-success/20"
-              : "bg-danger-soft text-danger border-danger/20"
+            gradeResult.passed ? "bg-success-soft text-success border-success/20" : "bg-danger-soft text-danger border-danger/20"
           }`}
         >
           <span className="font-semibold">{gradeResult.passed ? "Correct." : "Not yet."}</span>{" "}
-          {gradeResult.reason ?? (gradeResult.passed ? "Nice — this one is marked solved." : "")}
+          {gradeResult.reason ?? (gradeResult.passed ? "Marked solved." : "")}
         </div>
       )}
 

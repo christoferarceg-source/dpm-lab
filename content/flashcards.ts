@@ -130,4 +130,52 @@ export const flashcards: Flashcard[] = [
     front: "Write the OEE formula and the threshold considered world-leading.",
     back: "OEE = Machine Availability × Process Efficiency × Product Quality. 85%+ is world-leading; most sit at 40–60%.",
   },
+  {
+    id: "fc-dq-dimensions",
+    kbSlug: "data-quality-dimensions",
+    front: "Name the six data-quality dimensions.",
+    back: "Completeness, uniqueness, timeliness (freshness), consistency, validity, accuracy.",
+  },
+  {
+    id: "fc-slo-parts",
+    kbSlug: "data-quality-dimensions",
+    front: "What three parts make a data SLO checkable, as opposed to a wish?",
+    back: "A measurement (a query), a threshold, and when it is evaluated. 'The job runs at 02:00' is a schedule, not an SLO.",
+  },
+  {
+    id: "fc-success-not-enough",
+    kbSlug: "data-quality-dimensions",
+    front: "Give two ways a pipeline run can report 'success' and still deliver wrong data.",
+    back: "Re-ingesting yesterday's file (duplicates) and processing a partial file (row count collapses). Neither is visible to a status column.",
+  },
+  {
+    id: "fc-funnel-three",
+    kbSlug: "funnel-conversion-analysis",
+    front: "'Conversion rate' hides three questions. What are they, and which needs the history log?",
+    back: "Overall conversion (did it close?), stage-to-stage conversion (where do they drop?), velocity (where do they stall?). The last two need the append-only stage history.",
+  },
+  {
+    id: "fc-rca-first-step",
+    kbSlug: "funnel-conversion-analysis",
+    front: "Before slicing a conversion drop by any dimension, what artifact do you rule out first?",
+    back: "Open deals in recent cohorts: restrict to resolved deals (won + lost) on cohorts old enough to have closed.",
+  },
+  {
+    id: "fc-fanout",
+    kbSlug: "sql-toolkit-for-data-pms",
+    front: "What is join fan-out and how do you avoid it?",
+    back: "Joining a 1:N table before an aggregate multiplies the measure once per child row. Aggregate the N side first (in a CTE), then join.",
+  },
+  {
+    id: "fc-left-join-where",
+    kbSlug: "sql-toolkit-for-data-pms",
+    front: "Why does a WHERE condition on the right-hand table break a LEFT JOIN completeness check?",
+    back: "Unmatched rows have NULL in those columns, and NULL = 'x' is never true, so the WHERE drops exactly the missing rows. Put the condition in ON.",
+  },
+  {
+    id: "fc-grain-window",
+    kbSlug: "sql-toolkit-for-data-pms",
+    front: "Rule of thumb for running totals and moving averages?",
+    back: "Grain first, window second: aggregate to the reporting grain in a CTE, then apply SUM/AVG OVER.",
+  },
 ];

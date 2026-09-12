@@ -8,9 +8,10 @@
     "start": "next start",
     "lint": "eslint",
     "test": "tsx scripts/test-graders.mts",
-    "verify:answers": "node scripts/compute-expected.mjs",
+    "verify:answers": "tsx scripts/compute-expected.mts",
     "build:static": "STATIC_EXPORT=1 NEXT_PUBLIC_BASE_PATH=/dpm-lab next build",
-    "deploy": "npm run build:static && gh-pages -d out --dotfiles -m \"Deploy to GitHub Pages\""
+    "deploy": "npm run build:static && gh-pages -d out --dotfiles -m \"Deploy to GitHub Pages\"",
+    "diagnose": "tsx scripts/diagnose-dataset.mts"
   },
   "dependencies": {
     "@codemirror/lang-python": "^6.2.1",

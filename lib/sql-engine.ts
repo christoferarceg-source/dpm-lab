@@ -4,11 +4,11 @@
 // .wasm are served from /public so nothing goes through the bundler.
 
 import type { Database, SqlJsStatic } from "sql.js";
-import { SCHEMA_SQL, buildSeedSql } from "@/content/dataset";
+import { SCHEMA_SQL, buildSeedSql, getDataset } from "@/content/dataset";
 import { loadScript } from "./load-script";
 import { withBasePath } from "./base-path";
 import { columnsEqual, deepEqual } from "./compare";
-import type { SqlExercise } from "./types";
+import type { SqlExercise, SqlExpected } from "./types";
 
 declare global {
   interface Window {
@@ -43,7 +43,7 @@ export async function createSeededDb(): Promise<Database> {
   const SQL = await getSql();
   const db = new SQL.Database();
   db.run(SCHEMA_SQL);
-  db.run(buildSeedSql());
+  db.run(buildSeedSql(getDataset()));
   return db;
 }
 
@@ -68,20 +68,20 @@ export type GradeResult = {
   reason?: string;
 };
 
-export function gradeSql(exercise: SqlExercise, result: QueryResult): GradeResult {
-  if (!columnsEqual(result.columns, exercise.expectedColumns)) {
+export function gradeSql(exercise: SqlExercise, expected: SqlExpected, result: QueryResult): GradeResult {
+  if (!columnsEqual(result.columns, expected.columns)) {
     return {
       passed: false,
-      reason: `Expected columns [${exercise.expectedColumns.join(", ")}] but got [${result.columns.join(", ")}]. Check your aliases (AS ...) and column order.`,
+      reason: `Expected columns [${expected.columns.join(", ")}] but got [${result.columns.join(", ")}]. Check your aliases (AS ...) and column order.`,
     };
   }
-  if (result.rows.length !== exercise.expectedRows.length) {
+  if (result.rows.length !== expected.rows.length) {
     return {
       passed: false,
-      reason: `Expected ${exercise.expectedRows.length} row(s) but got ${result.rows.length}. Check your WHERE / GROUP BY.`,
+      reason: `Expected ${expected.rows.length} row(s) but got ${result.rows.length}. Check your WHERE / GROUP BY.`,
     };
   }
-  const ok = deepEqual(result.rows, exercise.expectedRows, exercise.orderMatters ?? false);
+  const ok = deepEqual(result.rows, expected.rows, exercise.orderMatters ?? false);
   if (!ok) {
     return {
       passed: false,

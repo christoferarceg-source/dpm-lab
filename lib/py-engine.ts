@@ -7,7 +7,7 @@
 // caches it after that.
 
 import type { PyodideInterface } from "pyodide";
-import { accounts, customers, deals, transactions } from "@/content/dataset";
+import { getDataset } from "@/content/dataset";
 import { loadScript } from "./load-script";
 import { deepEqual } from "./compare";
 import type { PythonExercise } from "./types";
@@ -49,10 +49,13 @@ export async function getPyodide(onStage?: (s: PyLoadStage) => void): Promise<Py
 export const SETUP_CODE = `
 import json as _json
 import pandas as pd
-accounts     = pd.DataFrame(_json.loads(__accounts_json))
-customers    = pd.DataFrame(_json.loads(__customers_json))
-deals        = pd.DataFrame(_json.loads(__deals_json))
-transactions = pd.DataFrame(_json.loads(__transactions_json))
+accounts           = pd.DataFrame(_json.loads(__accounts_json))
+customers          = pd.DataFrame(_json.loads(__customers_json))
+deals              = pd.DataFrame(_json.loads(__deals_json))
+deal_stage_history = pd.DataFrame(_json.loads(__deal_stage_history_json))
+transactions       = pd.DataFrame(_json.loads(__transactions_json))
+pipeline_runs      = pd.DataFrame(_json.loads(__pipeline_runs_json))
+dashboard_views    = pd.DataFrame(_json.loads(__dashboard_views_json))
 result = None
 `;
 
@@ -101,10 +104,8 @@ export async function runPython(code: string): Promise<PyRunOutcome> {
 
   const ns = py.globals.get("dict")();
   try {
-    ns.set("__accounts_json", JSON.stringify(accounts));
-    ns.set("__customers_json", JSON.stringify(customers));
-    ns.set("__deals_json", JSON.stringify(deals));
-    ns.set("__transactions_json", JSON.stringify(transactions));
+    const ds = getDataset();
+    for (const [name, rows] of Object.entries(ds)) ns.set(`__${name}_json`, JSON.stringify(rows));
 
     const t0 = performance.now();
     py.runPython(SETUP_CODE, { globals: ns });
@@ -124,11 +125,10 @@ export async function runPython(code: string): Promise<PyRunOutcome> {
 
 export type GradeResult = { passed: boolean; reason?: string };
 
-export function gradePython(exercise: PythonExercise, result: unknown): GradeResult {
+export function gradePython(exercise: PythonExercise, expected: unknown, result: unknown): GradeResult {
   if (result === null || result === undefined) {
     return { passed: false, reason: "`result` is still None — assign your answer to it." };
   }
-  const expected = exercise.expectedResult;
   if (Array.isArray(expected) && !Array.isArray(result)) {
     return {
       passed: false,

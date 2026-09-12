@@ -4,9 +4,9 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 
 const links = [
-  { href: "/", label: "Dashboard" },
-  { href: "/kb", label: "Knowledge Base" },
+  { href: "/", label: "Six Weeks" },
   { href: "/practice", label: "Practice" },
+  { href: "/kb", label: "Knowledge Base" },
   { href: "/review", label: "Review" },
 ];
 
@@ -20,7 +20,7 @@ export function NavBar() {
         </Link>
         <nav className="flex items-center gap-1 overflow-x-auto">
           {links.map((l) => {
-            const active = l.href === "/" ? pathname === "/" : pathname.startsWith(l.href);
+            const active = l.href === "/" ? pathname === "/" || pathname.startsWith("/chapters") : pathname.startsWith(l.href);
             return (
               <Link
                 key={l.href}

@@ -405,4 +405,117 @@ whether the drift is a real operational issue or a broken upstream
 transform.`,
     source: "The Big Book of Data Science Use Cases, 2nd Edition (Databricks).",
   },
+  {
+    slug: "data-quality-dimensions",
+    title: "Data Quality Dimensions (and how to write an SLO)",
+    category: "framework",
+    tags: ["data-quality", "slo", "week-3"],
+    summary:
+      "Six dimensions — completeness, uniqueness, timeliness, consistency, validity, accuracy — each becomes an SLO once you name the measurement, threshold, and check time.",
+    body: `A data product's SLOs are promises about the data, not about the pipeline.
+The classic six dimensions give you the vocabulary:
+
+| Dimension | Question | Example SLO at Meridian |
+|---|---|---|
+| **Completeness** | Are required values present? | 100% of closed deals have a \`closed_date\` |
+| **Uniqueness** | Is each real-world event recorded once? | No two transactions share (deal, amount, date) |
+| **Timeliness** (freshness) | Is the data recent enough? | Latest successful \`deals\` load < 24h old at 09:00 |
+| **Consistency** | Do two representations agree? | \`deals.stage\` equals the latest \`deal_stage_history\` row |
+| **Validity** | Do values conform to rules? | \`stage\` ∈ the six allowed values; \`amount\` > 0 |
+| **Accuracy** | Does the value match reality? | Bookings reconcile to signed contracts (sampled) |
+
+## Writing an SLO that can actually be checked
+An SLO has three parts: the **measurement** (a query), the **threshold**, and
+**when** it is evaluated. "The pipeline runs at 02:00" is a schedule. "The
+latest successful run is never more than 24 hours old at 09:00, measured
+from \`pipeline_runs\`" is an SLO.
+
+## Why "success" is not enough
+A run can succeed and still ingest a partial file (row count drops 70%),
+re-ingest yesterday's file (duplicates), or land on time with stale
+upstream data. Every one of those is invisible to a status column and
+visible to a data check. That's the difference between *pipeline
+observability* (did it run?) and *data quality* (is it right?).`,
+    source: "Synthesized for DPM Lab from common data-quality practice; ties to the Playbook's Activation week.",
+  },
+  {
+    slug: "funnel-conversion-analysis",
+    title: "Funnel Analysis: Overall vs. Stage-to-Stage, Cohorts, Velocity",
+    category: "framework",
+    tags: ["metrics", "funnel", "rca", "week-2", "week-5"],
+    summary:
+      "Three different funnel questions need three different queries: overall conversion (by cohort), stage-to-stage conversion (from the history log), and time in stage (velocity).",
+    body: `"Conversion rate" hides three questions. A Data PM keeps them apart.
+
+## 1. Overall conversion — *did it close?*
+\`won ÷ (won + lost)\` on **resolved** deals. Report it by **created-month
+cohort**, because recent cohorts haven't had time to close and will always
+look worse at the right edge of the chart. Excluding open deals is the
+first thing to do before believing any drop.
+
+## 2. Stage-to-stage conversion — *where do they drop?*
+Needs the **append-only history**, not the current stage. For each stage,
+count distinct deals that *ever entered* it; the ratio between consecutive
+stages is the drop-off. A deal that skipped a stage simply never appears in
+it.
+
+## 3. Velocity — *where do they stall?*
+Days between consecutive history rows for the same deal, i.e.
+\`LEAD(entered_at) OVER (PARTITION BY deal_id ORDER BY entered_at)\`. A
+stage whose duration doubles is a stronger RCA signal than a rate that
+wobbles.
+
+## Using the three together (the RCA walk)
+1. Confirm the drop is real on resolved, mature cohorts.
+2. Slice overall conversion by one dimension at a time (region, source,
+   rep, tier). A cause that touches everything (a price increase) can't
+   explain a change in one cell.
+3. In the affected cell, look at stage-to-stage and velocity to see
+   *where* in the funnel the loss happens. Late-funnel losses with longer
+   negotiation usually mean lead quality; early losses mean targeting.`,
+    source: "Synthesized for DPM Lab; builds on the Playbook's Metric Dependency Tree.",
+  },
+  {
+    slug: "sql-toolkit-for-data-pms",
+    title: "The SQL a Data PM Actually Uses",
+    category: "definition",
+    tags: ["sql", "skills"],
+    summary:
+      "CTEs for readable steps, window functions for per-row context, date bucketing for trends, and the four bugs that silently corrupt metrics.",
+    body: `You are not writing production pipelines. You are verifying numbers,
+sizing problems, and reading other people's queries. That needs a small,
+sharp toolkit.
+
+## Shapes you'll write every week
+- **CTEs** (\`WITH x AS (...)\`) — one step per CTE, named after what it
+  produces (\`resolved_deals\`, \`latest_stage\`). Readable beats clever.
+- **Window functions** — \`ROW_NUMBER() OVER (PARTITION BY deal_id ORDER BY
+  entered_at DESC)\` for "latest per entity"; \`LAG\`/\`LEAD\` for change
+  between rows; \`SUM(...) OVER (ORDER BY month)\` for running totals;
+  \`AVG(...) OVER (... ROWS BETWEEN 6 PRECEDING AND CURRENT ROW)\` for moving
+  averages.
+- **Date bucketing** — \`substr(date, 1, 7)\` for month, \`strftime('%Y-%W',
+  ts)\` for ISO-ish week, \`julianday(b) - julianday(a)\` for day differences
+  (SQLite).
+- **Conditional aggregation** — \`SUM(CASE WHEN ... THEN 1 ELSE 0 END)\` (or
+  \`SUM(condition)\` in SQLite) to compute several rates in one pass.
+- **HAVING** — filter *after* aggregation; the idiom for duplicates:
+  \`GROUP BY key HAVING COUNT(*) > 1\`.
+
+## The four silent metric bugs
+1. **Join fan-out** — joining a 1:N table before an aggregate multiplies
+   the measure. Aggregate the N side first.
+2. **LEFT JOIN + WHERE on the right table** — turns it into an inner join
+   and hides exactly the missing rows you were looking for. Put the
+   condition in \`ON\`.
+3. **COUNT(*) vs COUNT(DISTINCT x)** — views vs viewers, rows vs people.
+4. **Integer division** — \`7 / 10 = 0\` in many engines. Multiply by
+   \`1.0\` first.
+
+## Grain first, window second
+Decide what one row means (a deal? a month?), aggregate to that grain in a
+CTE, *then* apply windows. Running totals and moving averages on the wrong
+grain look plausible and are wrong.`,
+    source: "Synthesized for DPM Lab.",
+  },
 ];

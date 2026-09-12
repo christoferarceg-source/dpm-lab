@@ -4,12 +4,12 @@ const live = [
   {
     href: "/practice/sql",
     title: "SQL",
-    blurb: "Compute the Sales Funnel metric tree in SQLite: deals_closed_value, revenue_generated, conversion_rate, and an RCA slice.",
+    blurb: "29 exercises across the six chapters: warm-ups, CTEs, window functions, data-quality audits, adoption trends, root cause, and revenue reconciliation.",
   },
   {
     href: "/practice/python",
     title: "Python (pandas)",
-    blurb: "Same dataset, same metrics — in pandas. Filters, merges, groupby, named aggregation.",
+    blurb: "pandas twins of the chapter 1–2 warm-ups: filters, merges, groupby, named aggregation. The rest of the ladder follows.",
   },
   {
     href: "/review",
@@ -38,7 +38,7 @@ export default function PracticeIndex() {
     <div className="space-y-8">
       <div>
         <h1 className="text-2xl font-semibold tracking-tight">Practice</h1>
-        <p className="text-muted mt-1">Hard skills first. Judgment modes next.</p>
+        <p className="text-muted mt-1">The exercise ladder on its own. For the story and the decision quizzes, start from <Link href="/" className="text-accent underline underline-offset-2">Six Weeks</Link>.</p>
       </div>
 
       <section>

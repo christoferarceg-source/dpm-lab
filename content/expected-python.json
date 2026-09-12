@@ -1,0 +1,199 @@
+{
+  "py-count-closed-won": 198,
+  "py-deals-closed-value": 12284500,
+  "py-revenue-generated": 14660100,
+  "py-conversion-rate": 0.5395,
+  "py-groupby-account": [
+    {
+      "account_name": "Initech Software",
+      "total_won": 1657000
+    },
+    {
+      "account_name": "InGen Life Sciences",
+      "total_won": 1108000
+    },
+    {
+      "account_name": "Dunder Paper Co",
+      "total_won": 986500
+    },
+    {
+      "account_name": "Wonka Foods",
+      "total_won": 808500
+    },
+    {
+      "account_name": "Wayne Manufacturing",
+      "total_won": 686000
+    },
+    {
+      "account_name": "Rekall Travel",
+      "total_won": 622000
+    },
+    {
+      "account_name": "Tyrell Bio",
+      "total_won": 614000
+    },
+    {
+      "account_name": "Sirius Cybernetics",
+      "total_won": 527000
+    },
+    {
+      "account_name": "Buy n Large Retail",
+      "total_won": 495500
+    },
+    {
+      "account_name": "Gringotts Fintech",
+      "total_won": 450000
+    },
+    {
+      "account_name": "Mooby Entertainment",
+      "total_won": 317000
+    },
+    {
+      "account_name": "Northwind Traders",
+      "total_won": 310500
+    },
+    {
+      "account_name": "Virtucon",
+      "total_won": 300500
+    },
+    {
+      "account_name": "Zorg Industries",
+      "total_won": 258000
+    },
+    {
+      "account_name": "Monarch Solutions",
+      "total_won": 229500
+    },
+    {
+      "account_name": "Oceanic Airlines",
+      "total_won": 224500
+    },
+    {
+      "account_name": "Nakatomi Trading",
+      "total_won": 217500
+    },
+    {
+      "account_name": "Brawndo Beverages",
+      "total_won": 215500
+    },
+    {
+      "account_name": "Wernham Hogg",
+      "total_won": 204000
+    },
+    {
+      "account_name": "Oscorp Materials",
+      "total_won": 201500
+    },
+    {
+      "account_name": "Cheers Hospitality",
+      "total_won": 189000
+    },
+    {
+      "account_name": "Globex Logistics",
+      "total_won": 188000
+    },
+    {
+      "account_name": "Hooli Media",
+      "total_won": 172500
+    },
+    {
+      "account_name": "Aperture Labs",
+      "total_won": 166000
+    },
+    {
+      "account_name": "Sterling Cooper",
+      "total_won": 157000
+    },
+    {
+      "account_name": "Massive Dynamic",
+      "total_won": 137500
+    },
+    {
+      "account_name": "Acme Robotics",
+      "total_won": 104500
+    },
+    {
+      "account_name": "Weyland Energy",
+      "total_won": 103000
+    },
+    {
+      "account_name": "Ollivander Supply",
+      "total_won": 91500
+    },
+    {
+      "account_name": "Cyberdyne Systems",
+      "total_won": 70000
+    },
+    {
+      "account_name": "Vandelay Imports",
+      "total_won": 68500
+    },
+    {
+      "account_name": "Bluth Homes",
+      "total_won": 66000
+    },
+    {
+      "account_name": "Los Pollos Foods",
+      "total_won": 65500
+    },
+    {
+      "account_name": "Kwik-E-Mart Group",
+      "total_won": 62000
+    },
+    {
+      "account_name": "Umbrella Health",
+      "total_won": 58000
+    },
+    {
+      "account_name": "Stark Analytics",
+      "total_won": 48000
+    },
+    {
+      "account_name": "Pied Piper Cloud",
+      "total_won": 46000
+    },
+    {
+      "account_name": "Paper Street Soap",
+      "total_won": 32000
+    },
+    {
+      "account_name": "Soylent Nutrition",
+      "total_won": 26500
+    }
+  ],
+  "py-rep-performance": {
+    "owner": "Jordan Blake",
+    "total_won": 3203000
+  },
+  "py-region-conversion": [
+    {
+      "region": "AMER",
+      "conversion_rate": 0.5393
+    },
+    {
+      "region": "APAC",
+      "conversion_rate": 0.5325
+    },
+    {
+      "region": "EMEA",
+      "conversion_rate": 0.5446
+    }
+  ],
+  "py-rca-source-lost": [
+    {
+      "source": "Outbound",
+      "lost_value": 5655500,
+      "lost_count": 90
+    },
+    {
+      "source": "Inbound",
+      "lost_value": 3075500,
+      "lost_count": 51
+    },
+    {
+      "source": "Referral",
+      "lost_value": 1477000,
+      "lost_count": 28
+    }
+  ]
+}

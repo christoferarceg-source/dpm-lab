@@ -1,66 +1,58 @@
-// Shared types across the knowledge base, SQL/Python practice, and spaced
-// review. Kept framework-agnostic (no DB client types) so this file works
-// identically in the browser, in Node scripts, and later in a Supabase
-// migration.
+// Shared types across the story, knowledge base, quizzes, SQL/Python
+// practice, and spaced review. Framework-agnostic so the same file works in
+// the browser, in Node scripts, and later in a Supabase migration.
 
-export type KbCategory =
-  | "framework"
-  | "definition"
-  | "case-study"
-  | "industry-context";
+export type KbCategory = "framework" | "definition" | "case-study" | "industry-context";
 
 export type KbEntry = {
   slug: string;
   title: string;
   category: KbCategory;
   tags: string[];
-  /** One-sentence summary shown on cards / search results. */
   summary: string;
-  /** Full body, markdown. */
-  body: string;
-  /** Where this came from, for provenance. */
+  body: string; // markdown
   source: string;
 };
 
-export type Difficulty = "intro" | "core" | "stretch";
+export type Difficulty = "warmup" | "core" | "advanced";
 
 export type DpmConnection = {
-  /** Why this exercise matters for a data product, in plain language. */
   text: string;
-  /** slug of the KB entry that explains the underlying concept. */
   kbSlug: string;
 };
 
+/** 1–6, the Playbook week the exercise belongs to. */
+export type ChapterNumber = 1 | 2 | 3 | 4 | 5 | 6;
+
 export type SqlExercise = {
   slug: string;
+  chapter: ChapterNumber;
   title: string;
   difficulty: Difficulty;
-  /** Markdown prompt. */
-  prompt: string;
+  prompt: string; // markdown
   starterQuery: string;
-  /** Column names the grader compares against, in order. */
-  expectedColumns: string[];
-  /** Row values, in column order. Compared after coercing numbers. */
-  expectedRows: (string | number | null)[][];
+  /** Reference solution. scripts/compute-expected.mts runs it to produce content/expected-sql.json. */
+  solution: string;
   /** If false (default), row order is ignored when grading. */
   orderMatters?: boolean;
   dpmConnection: DpmConnection;
   hint: string;
 };
 
+export type SqlExpected = {
+  columns: string[];
+  rows: (string | number | null)[][];
+};
+
 export type PythonExercise = {
   slug: string;
+  chapter: ChapterNumber;
   title: string;
   difficulty: Difficulty;
   prompt: string;
   starterCode: string;
-  /**
-   * Expected value of the Python variable `result` after running the
-   * user's code, expressed as JSON-comparable JS (number, string, or an
-   * array of plain objects for row-set results).
-   */
-  expectedResult: unknown;
-  /** If false (default), row order in list-of-dict results is ignored. */
+  /** Reference solution (Python). scripts/compute-expected.mts runs it in Pyodide to produce content/expected-python.json. */
+  solution: string;
   orderMatters?: boolean;
   dpmConnection: DpmConnection;
   hint: string;
@@ -73,4 +65,44 @@ export type Flashcard = {
   kbSlug: string;
   front: string;
   back: string;
+};
+
+// ---------- quizzes ----------
+export type QuizKind = "judgment" | "concept" | "sql-prediction";
+
+export type QuizOption = {
+  text: string;
+  /** Why this option is right or wrong. Shown after answering. */
+  explanation: string;
+};
+
+export type QuizQuestion = {
+  id: string;
+  chapter: ChapterNumber;
+  kind: QuizKind;
+  prompt: string; // markdown; sql-prediction questions include a ```sql block
+  options: QuizOption[];
+  correctIndex: number;
+  kbSlug: string;
+};
+
+// ---------- story ----------
+export type Character = {
+  name: string;
+  role: string;
+  /** One line on what they want from you. */
+  agenda: string;
+};
+
+export type Chapter = {
+  number: ChapterNumber;
+  slug: string;
+  title: string;
+  week: string; // e.g. "Week 1 · The Bullseye"
+  tagline: string;
+  /** Markdown. The situation you walk into. */
+  brief: string;
+  readings: string[]; // KB slugs
+  /** Markdown. What a good Data PM would have taken away. Shown when the chapter is complete. */
+  debrief: string;
 };

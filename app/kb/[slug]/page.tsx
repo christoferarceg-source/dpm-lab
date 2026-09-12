@@ -51,14 +51,14 @@ export default async function KbEntryPage({ params }: PageProps<"/kb/[slug]">) {
               <ul className="space-y-1">
                 {relatedSql.map((e) => (
                   <li key={e.slug}>
-                    <Link href="/practice/sql" className="text-accent underline underline-offset-2">
+                    <Link href={`/practice/sql#${e.slug}`} className="text-accent underline underline-offset-2">
                       SQL · {e.title}
                     </Link>
                   </li>
                 ))}
                 {relatedPy.map((e) => (
                   <li key={e.slug}>
-                    <Link href="/practice/python" className="text-accent underline underline-offset-2">
+                    <Link href={`/practice/python#${e.slug}`} className="text-accent underline underline-offset-2">
                       Python · {e.title}
                     </Link>
                   </li>
