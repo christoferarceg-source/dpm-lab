@@ -55,6 +55,8 @@ export default function SqlPracticePage() {
         prompt: e.prompt,
         starter: e.starterQuery,
         hint: e.hint,
+        solution: e.solution,
+        walkthrough: e.walkthrough,
         dpmConnection: e.dpmConnection,
       }))}
       prepare={prepare}

@@ -49,10 +49,12 @@ const kbSlugs = new Set(kbEntries.map((e) => e.slug));
 console.log("\n== content integrity ==");
 for (const ex of sqlExercises) {
   check(`${ex.slug}: expected result on file`, ex.slug in sqlExp);
+  check(`${ex.slug}: has walkthrough`, ex.walkthrough.length > 40);
   check(`${ex.slug}: kbSlug exists`, kbSlugs.has(ex.dpmConnection.kbSlug), ex.dpmConnection.kbSlug);
 }
 for (const ex of pythonExercises) {
   check(`${ex.slug}: expected result on file`, ex.slug in pyExp);
+  check(`${ex.slug}: has walkthrough`, ex.walkthrough.length > 20);
   check(`${ex.slug}: kbSlug exists`, kbSlugs.has(ex.dpmConnection.kbSlug), ex.dpmConnection.kbSlug);
 }
 check("no stale SQL expected entries", Object.keys(sqlExp).every((k) => sqlExercises.some((e) => e.slug === k)));

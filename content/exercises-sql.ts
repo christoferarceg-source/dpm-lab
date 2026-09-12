@@ -25,6 +25,7 @@ FROM deals
 WHERE stage = '...'
 ORDER BY deal_id;`,
     solution: `SELECT deal_id, owner, amount FROM deals WHERE stage = 'qualified' ORDER BY deal_id;`,
+    walkthrough: `\`SELECT deal_id, owner, amount\` names the three columns. \`FROM deals\` is the table. \`WHERE stage = 'qualified'\` keeps only rows whose stage is exactly that text (single quotes, exact spelling). \`ORDER BY deal_id\` fixes the row order so the result is reproducible.`,
     orderMatters: true,
     dpmConnection: {
       text: "SELECT / FROM / WHERE / ORDER BY is the sentence every other query extends. Being able to list the exact rows behind a number is the first habit of a Data PM.",
@@ -43,6 +44,7 @@ FROM deals
 GROUP BY -- ?
 ORDER BY deals DESC, stage;`,
     solution: `SELECT stage, COUNT(*) AS deals FROM deals GROUP BY stage ORDER BY deals DESC, stage;`,
+    walkthrough: `\`GROUP BY stage\` collapses the table into one row per distinct stage. \`COUNT(*)\` counts the rows inside each group, and \`AS deals\` names that column. \`ORDER BY deals DESC, stage\` puts the biggest group first and breaks ties alphabetically.`,
     orderMatters: true,
     dpmConnection: {
       text: "GROUP BY turns a table into one row per value. This is the shape of almost every chart: a dimension and a count.",
@@ -62,6 +64,7 @@ JOIN accounts a ON -- the shared key
 GROUP BY a.region
 ORDER BY a.region;`,
     solution: `SELECT a.region, ROUND(AVG(d.amount), 0) AS avg_amount FROM deals d JOIN accounts a ON a.account_id = d.account_id GROUP BY a.region ORDER BY a.region;`,
+    walkthrough: `Region isn't on \`deals\`, so \`JOIN accounts a ON a.account_id = d.account_id\` pairs each deal with its account through the shared key. After the join, \`GROUP BY a.region\` makes one row per region and \`AVG(d.amount)\` averages the deal amounts in it. \`ROUND(..., 0)\` trims decimals.`,
     orderMatters: true,
     dpmConnection: {
       text: "Your first join: pair each deal with its account through account_id, then aggregate. Every metric that slices by a customer attribute has this shape.",
@@ -84,6 +87,7 @@ FROM deals
 WHERE -- your condition here
 ORDER BY deal_id;`,
     solution: `SELECT deal_id, account_id, amount FROM deals WHERE stage = 'closed_won' ORDER BY deal_id;`,
+    walkthrough: `The filter \`stage = 'closed_won'\` is the whole trick: it keeps exactly the rows that feed the bookings metric. Ordering by \`deal_id\` makes the list stable so you can compare runs.`,
     orderMatters: true,
     dpmConnection: {
       text: "Filtering to closed_won is the first step of the functional metric deals_closed_value. A Data PM who can point at the exact rows behind an aggregate can defend it; one who can't is trusting the dashboard.",
@@ -101,6 +105,7 @@ ORDER BY deal_id;`,
 FROM deals
 WHERE stage = 'closed_won';`,
     solution: `SELECT SUM(amount) AS deals_closed_value FROM deals WHERE stage = 'closed_won';`,
+    walkthrough: `\`SUM(amount)\` adds the amount of every row that survives the WHERE. Because only \`closed_won\` rows survive, the sum is bookings. \`AS deals_closed_value\` names the metric so the result reads like the tree.`,
     dpmConnection: {
       text: "This is the Playbook's functional metric for Sales: bookings. It rolls up into the North Star and is explained by granular metrics like conversion_rate in the Metric Dependency Tree.",
       kbSlug: "metric-types",
@@ -118,6 +123,7 @@ Compute **revenue_generated**: the total \`amount\` across all transactions. One
     starterQuery: `SELECT -- aggregate here
 FROM transactions;`,
     solution: `SELECT SUM(amount) AS revenue_generated FROM transactions;`,
+    walkthrough: `No WHERE: every transaction counts, initial, renewal, and upsell alike. \`SUM(amount)\` over the whole table is the North Star. The number is larger than bookings because renewals and upsells are money that never appears on a deal row.`,
     dpmConnection: {
       text: "revenue_generated is the North Star for Sales. Notice it is NOT the same number as deals_closed_value: transactions include renewals and upsells that deal amounts don't. Chapter 6 is entirely about explaining that gap to the CFO.",
       kbSlug: "metric-types",
@@ -139,6 +145,7 @@ One row, one column \`conversion_rate\`, rounded to 4 decimals.`,
 ) AS conversion_rate
 FROM deals;`,
     solution: `SELECT ROUND(1.0 * SUM(CASE WHEN stage = 'closed_won' THEN 1 ELSE 0 END) / SUM(CASE WHEN stage IN ('closed_won', 'closed_lost') THEN 1 ELSE 0 END), 4) AS conversion_rate FROM deals;`,
+    walkthrough: `Two conditional counts in one pass: \`SUM(CASE WHEN stage = 'closed_won' THEN 1 ELSE 0 END)\` counts wins; the second SUM counts resolved deals (won or lost). \`1.0 *\` forces decimal division, otherwise SQLite would return 0. \`ROUND(..., 4)\` fixes the precision.`,
     dpmConnection: {
       text: "Compare this with the 'won ÷ all deals' query Raj showed you in the quiz. Same table, different denominator, a very different number. Which one is 'right' is a definition decision, and it belongs on the Metric Dependency Tree with a name.",
       kbSlug: "metric-types",
@@ -160,6 +167,7 @@ WHERE d.stage = 'closed_won'
 GROUP BY a.account_name
 ORDER BY total_won DESC, a.account_name;`,
     solution: `SELECT a.account_name, SUM(d.amount) AS total_won FROM accounts a JOIN deals d ON a.account_id = d.account_id WHERE d.stage = 'closed_won' GROUP BY a.account_name ORDER BY total_won DESC, a.account_name;`,
+    walkthrough: `\`JOIN deals d ON a.account_id = d.account_id\` attaches each deal to its account. The WHERE keeps won deals, \`GROUP BY a.account_name\` makes one row per account, and \`SUM(d.amount)\` totals within it. The two-key ORDER BY makes ties deterministic.`,
     orderMatters: true,
     dpmConnection: {
       text: "This is the logical model's 'Relationships' (accounts 1:N deals) turned into a measure. Splitting a functional metric by an entity is the first move of any root-cause walk.",
@@ -179,6 +187,7 @@ WHERE stage = 'closed_won'
 GROUP BY -- ?
 ORDER BY total_won DESC;`,
     solution: `SELECT owner, SUM(amount) AS total_won FROM deals WHERE stage = 'closed_won' GROUP BY owner ORDER BY total_won DESC;`,
+    walkthrough: `Same pattern on a single table: filter to won deals, \`GROUP BY owner\`, \`SUM(amount)\`. Ordering descending puts the top rep first, which is how the review meeting reads it.`,
     orderMatters: true,
     dpmConnection: {
       text: "Slicing a metric by a dimension (owner) is what Dana actually asks for in a pipeline review. As a Data PM, look at the concentration: if one rep is a large share of the number, a data problem on their deals moves the North Star.",
@@ -203,6 +212,7 @@ JOIN accounts a ON a.account_id = d.account_id
 GROUP BY a.region
 ORDER BY a.region;`,
     solution: `SELECT a.region, ROUND(1.0 * SUM(CASE WHEN d.stage = 'closed_won' THEN 1 ELSE 0 END) / SUM(CASE WHEN d.stage IN ('closed_won', 'closed_lost') THEN 1 ELSE 0 END), 4) AS conversion_rate FROM deals d JOIN accounts a ON a.account_id = d.account_id GROUP BY a.region ORDER BY a.region;`,
+    walkthrough: `Region lives on \`accounts\`, stage on \`deals\`, so you join first. Then the conversion formula from chapter 1 runs inside each \`GROUP BY a.region\` group: won ÷ resolved, with \`1.0 *\` for decimals and \`ROUND(..., 4)\`.`,
     orderMatters: true,
     dpmConnection: {
       text: "A granular metric cut by a dimension from a *different* entity. Most real metric-tree questions have this shape: the measure on one table, the slicing attribute on another. The join is where silent errors creep in.",
@@ -224,6 +234,7 @@ WHERE stage = 'closed_lost'
 GROUP BY source
 ORDER BY lost_value DESC;`,
     solution: `SELECT source, SUM(amount) AS lost_value, COUNT(*) AS lost_count FROM deals WHERE stage = 'closed_lost' GROUP BY source ORDER BY lost_value DESC;`,
+    walkthrough: `Filter to \`closed_lost\`, then \`GROUP BY source\`. Two aggregates over the same rows: \`SUM(amount)\` for dollars lost and \`COUNT(*)\` for how many deals. Ordering by value puts the biggest leak first.`,
     orderMatters: true,
     dpmConnection: {
       text: "Two aggregates over the same filtered rows. The output is the raw material for a stakeholder conversation; the Data PM's job starts *after* the query: is Outbound losing on lead quality, pricing, or a data problem in how stage is recorded?",
@@ -250,6 +261,7 @@ SELECT
   -- add the value-based rate
 FROM resolved;`,
     solution: `WITH resolved AS (SELECT * FROM deals WHERE stage IN ('closed_won', 'closed_lost')) SELECT ROUND(1.0 * SUM(stage = 'closed_won') / COUNT(*), 4) AS conversion_rate_closed, ROUND(1.0 * SUM(CASE WHEN stage = 'closed_won' THEN amount ELSE 0 END) / SUM(amount), 4) AS conversion_rate_value FROM resolved;`,
+    walkthrough: `The CTE \`resolved\` filters once so both rates share the same denominator population. \`SUM(stage = 'closed_won')\` counts wins (SQLite treats a true comparison as 1). The value rate replaces the count with \`amount\` inside the CASE and divides by total amount.`,
     dpmConnection: {
       text: "Same rows, two legitimate metrics. The Metric Dependency Tree gives each a name and an owner so the whiteboard fight happens once. In SQLite, SUM(stage = 'closed_won') counts rows where the comparison is true.",
       kbSlug: "canvas-data-product-design",
@@ -269,6 +281,7 @@ FROM deal_stage_history
 GROUP BY stage
 ORDER BY ${STAGE_ORDER_SQL};`,
     solution: `SELECT stage, COUNT(DISTINCT deal_id) AS deals_reached FROM deal_stage_history GROUP BY stage ORDER BY ${STAGE_ORDER_SQL};`,
+    walkthrough: `Because the history log keeps every transition, \`COUNT(DISTINCT deal_id)\` per stage counts deals that *ever entered* that stage, and DISTINCT ignores duplicate log rows. The CASE in ORDER BY imposes funnel order instead of alphabetical.`,
     orderMatters: true,
     dpmConnection: {
       text: "A funnel is an 'ever reached' question, which only an append-only log can answer. This is why the logical model treats the history table, not the CRM's current stage, as the source for funnel metrics.",
@@ -300,6 +313,7 @@ FROM reached a
 JOIN reached b ON b.ord = a.ord + 1
 ORDER BY a.ord;`,
     solution: `WITH reached AS (SELECT stage, COUNT(DISTINCT deal_id) AS n, CASE stage WHEN 'prospecting' THEN 1 WHEN 'qualified' THEN 2 WHEN 'proposal' THEN 3 WHEN 'negotiation' THEN 4 WHEN 'closed_won' THEN 5 END AS ord FROM deal_stage_history WHERE stage <> 'closed_lost' GROUP BY stage) SELECT a.stage AS from_stage, b.stage AS to_stage, ROUND(1.0 * b.n / a.n, 4) AS step_rate FROM reached a JOIN reached b ON b.ord = a.ord + 1 ORDER BY a.ord;`,
+    walkthrough: `The CTE \`reached\` computes deals-per-stage plus a numeric position. Joining \`reached\` to itself \`ON b.ord = a.ord + 1\` lines each stage up with the next one, so \`b.n / a.n\` is the step conversion. \`1.0 *\` avoids integer division.`,
     orderMatters: true,
     dpmConnection: {
       text: "Overall conversion says *whether* deals close; stage-to-stage says *where* they drop. Different question, different query. The Data PM reads the weakest step as the place to look first.",
@@ -332,6 +346,7 @@ WHERE days IS NOT NULL
 GROUP BY stage
 ORDER BY CASE stage WHEN 'prospecting' THEN 1 WHEN 'qualified' THEN 2 WHEN 'proposal' THEN 3 ELSE 4 END;`,
     solution: `WITH h AS (SELECT DISTINCT deal_id, stage, entered_at FROM deal_stage_history), steps AS (SELECT deal_id, stage, julianday(LEAD(entered_at) OVER (PARTITION BY deal_id ORDER BY entered_at)) - julianday(entered_at) AS days FROM h) SELECT stage, ROUND(AVG(days), 1) AS avg_days FROM steps WHERE days IS NOT NULL GROUP BY stage ORDER BY CASE stage WHEN 'prospecting' THEN 1 WHEN 'qualified' THEN 2 WHEN 'proposal' THEN 3 ELSE 4 END;`,
+    walkthrough: `\`h\` deduplicates the log. In \`steps\`, \`LEAD(entered_at) OVER (PARTITION BY deal_id ORDER BY entered_at)\` fetches the next row *for the same deal*; subtracting \`julianday\` values gives days. The last row of each deal has no next row, so its gap is NULL and \`WHERE days IS NOT NULL\` drops it. Then average per stage.`,
     orderMatters: true,
     dpmConnection: {
       text: "Your first window function. Terminal stages get NULL from LEAD (no next row), which the WHERE removes. Time-in-stage is the metric Dana actually wants when she says 'where are deals stuck?'",
@@ -353,6 +368,7 @@ FROM deals
 GROUP BY cohort_month
 ORDER BY cohort_month;`,
     solution: `SELECT substr(created_date, 1, 7) AS cohort_month, COUNT(*) AS created, SUM(stage = 'closed_won') AS won, SUM(stage = 'closed_lost') AS lost, SUM(stage NOT IN ('closed_won', 'closed_lost')) AS still_open FROM deals GROUP BY cohort_month ORDER BY cohort_month;`,
+    walkthrough: `\`substr(created_date, 1, 7)\` turns a date into \`YYYY-MM\`. Grouping by it gives one row per cohort month. The three \`SUM(condition)\` columns count won, lost, and still-open deals; \`NOT IN\` is the complement of the resolved set.`,
     orderMatters: true,
     dpmConnection: {
       text: "Look at the right edge: recent cohorts have many still_open deals. Any 'won ÷ created' chart will sag there for no business reason. Chapter 5 starts by ruling that artifact out.",
@@ -376,6 +392,7 @@ GROUP BY deal_id, amount, transaction_date
 HAVING -- only groups with more than one row
 ORDER BY deal_id;`,
     solution: `SELECT deal_id, amount, transaction_date, COUNT(*) AS copies FROM transactions GROUP BY deal_id, amount, transaction_date HAVING COUNT(*) > 1 ORDER BY deal_id;`,
+    walkthrough: `The key that identifies one real-world payment is \`(deal_id, amount, transaction_date)\`. \`GROUP BY\` that key and \`HAVING COUNT(*) > 1\` keeps only groups with more than one row, which is the definition of a duplicate. \`copies\` shows how many.`,
     orderMatters: true,
     dpmConnection: {
       text: "GROUP BY key HAVING COUNT(*) > 1 is *the* duplicate idiom. A re-ingested file passes every pipeline status check and still double-counts revenue. This query becomes a uniqueness SLO that runs after every load.",
@@ -402,6 +419,7 @@ JOIN latest l ON l.deal_id = d.deal_id AND l.rn = 1
 WHERE -- the two stages differ
 ORDER BY d.deal_id;`,
     solution: `WITH latest AS (SELECT deal_id, stage, ROW_NUMBER() OVER (PARTITION BY deal_id ORDER BY entered_at DESC, history_id DESC) AS rn FROM deal_stage_history) SELECT d.deal_id, d.stage AS crm_stage, l.stage AS latest_stage FROM deals d JOIN latest l ON l.deal_id = d.deal_id AND l.rn = 1 WHERE d.stage <> l.stage ORDER BY d.deal_id;`,
+    walkthrough: `\`ROW_NUMBER() OVER (PARTITION BY deal_id ORDER BY entered_at DESC, history_id DESC)\` numbers each deal's history rows newest-first, so \`rn = 1\` is the latest stage. Joining that to \`deals\` and keeping \`d.stage <> l.stage\` surfaces every deal whose CRM value lags the log.`,
     orderMatters: true,
     dpmConnection: {
       text: "'Latest row per entity' via ROW_NUMBER is the most reused window pattern in data work. The fix isn't editing four CRM rows; it's making the history log the source of truth in the transform and turning this query into a consistency SLO.",
@@ -421,6 +439,7 @@ WHERE stage IN ('closed_won', 'closed_lost')
   AND -- closed_date is missing
 ORDER BY deal_id;`,
     solution: `SELECT deal_id, stage, owner FROM deals WHERE stage IN ('closed_won', 'closed_lost') AND closed_date IS NULL ORDER BY deal_id;`,
+    walkthrough: `Restrict to closed deals with \`stage IN ('closed_won', 'closed_lost')\`, then \`closed_date IS NULL\`. It must be \`IS NULL\`: \`= NULL\` is never true, so the check would return nothing and look clean.`,
     orderMatters: true,
     dpmConnection: {
       text: "NULL never equals anything; you must write IS NULL. These rows silently vanish from any 'closed in month X' report, so bookings by month are understated without anyone noticing. Completeness SLO: 100% of closed deals have a closed_date.",
@@ -444,6 +463,7 @@ WHERE status <> 'failed'
 GROUP BY pipeline
 ORDER BY pipeline;`,
     solution: `SELECT pipeline, MAX(finished_at) AS last_good_run, ROUND((julianday('2026-08-31 09:00:00') - julianday(MAX(finished_at))) * 24, 1) AS hours_stale FROM pipeline_runs WHERE status <> 'failed' GROUP BY pipeline ORDER BY pipeline;`,
+    walkthrough: `\`WHERE status <> 'failed'\` keeps runs that delivered data. \`MAX(finished_at)\` per pipeline is the last good load. \`julianday(as_of) - julianday(last)\` is the age in days; \`* 24\` converts to hours. That's a freshness SLO as a query.`,
     orderMatters: true,
     dpmConnection: {
       text: "This is a freshness SLO as a query: measurement, threshold (< 24h), and evaluation time (09:00). 'The job is scheduled at 02:00' is not an SLO; this is.",
@@ -468,6 +488,7 @@ FROM pipeline_runs f
 WHERE f.status = 'failed'
 ORDER BY f.pipeline, f.run_date;`,
     solution: `SELECT f.pipeline, f.run_date AS failed_on, (SELECT MIN(s.run_date) FROM pipeline_runs s WHERE s.pipeline = f.pipeline AND s.status <> 'failed' AND s.run_date > f.run_date) AS recovered_on, CAST(julianday((SELECT MIN(s.run_date) FROM pipeline_runs s WHERE s.pipeline = f.pipeline AND s.status <> 'failed' AND s.run_date > f.run_date)) - julianday(f.run_date) AS INTEGER) AS days_to_recover FROM pipeline_runs f WHERE f.status = 'failed' ORDER BY f.pipeline, f.run_date;`,
+    walkthrough: `For each failed row \`f\`, the correlated subquery finds the smallest later \`run_date\` for the same pipeline with a non-failed status: the recovery. Repeating it inside \`julianday(...) - julianday(f.run_date)\` and casting to INTEGER gives days to recover.`,
     orderMatters: true,
     dpmConnection: {
       text: "A three-day gap with no alert is how the June revenue numbers went stale for a weekend. Time-to-recover is the SLO metric an on-call rotation is measured on; you can't manage it until you can query it.",
@@ -499,6 +520,7 @@ FROM w
 WHERE trailing_avg IS NOT NULL AND -- rows_out is less than half the trailing average
 ORDER BY run_date;`,
     solution: `WITH ok AS (SELECT pipeline, run_date, rows_out FROM pipeline_runs WHERE status <> 'failed'), w AS (SELECT pipeline, run_date, rows_out, AVG(rows_out) OVER (PARTITION BY pipeline ORDER BY run_date ROWS BETWEEN 7 PRECEDING AND 1 PRECEDING) AS trailing_avg FROM ok) SELECT pipeline, run_date, rows_out, ROUND(trailing_avg, 1) AS trailing_avg FROM w WHERE trailing_avg IS NOT NULL AND rows_out < 0.5 * trailing_avg ORDER BY run_date;`,
+    walkthrough: `\`ok\` drops failed runs. The window \`AVG(rows_out) OVER (PARTITION BY pipeline ORDER BY run_date ROWS BETWEEN 7 PRECEDING AND 1 PRECEDING)\` averages the previous seven runs, excluding the current one, so each run has its own baseline. \`rows_out < 0.5 * trailing_avg\` flags the partial-file day.`,
     orderMatters: true,
     dpmConnection: {
       text: "A window *frame* (ROWS BETWEEN … PRECEDING) turns a per-run number into a per-run baseline. This is the volume check that catches 'success' on a 30% file, which no status column ever will.",
@@ -521,6 +543,7 @@ WHERE dashboard = 'Sales Funnel Accelerator'
 GROUP BY week
 ORDER BY week;`,
     solution: `SELECT strftime('%Y-%W', viewed_at) AS week, COUNT(DISTINCT viewer_id) AS active_viewers FROM dashboard_views WHERE dashboard = 'Sales Funnel Accelerator' GROUP BY week ORDER BY week;`,
+    walkthrough: `\`strftime('%Y-%W', viewed_at)\` buckets timestamps into ISO-style weeks. \`COUNT(DISTINCT viewer_id)\` counts people, not rows, so a user refreshing twenty times counts once. Filter to the new dashboard first.`,
     orderMatters: true,
     dpmConnection: {
       text: "COUNT(DISTINCT viewer_id), never COUNT(*): views measure activity, viewers measure adoption. Sofia's question was 'is anyone using it?', which is a question about people.",
@@ -543,6 +566,7 @@ WHERE dashboard = 'Sales Funnel Accelerator'
 GROUP BY viewer_role
 ORDER BY viewers DESC, viewer_role;`,
     solution: `SELECT viewer_role, COUNT(DISTINCT viewer_id) AS viewers, COUNT(*) AS views, ROUND(1.0 * COUNT(*) / COUNT(DISTINCT viewer_id), 1) AS views_per_viewer FROM dashboard_views WHERE dashboard = 'Sales Funnel Accelerator' GROUP BY viewer_role ORDER BY viewers DESC, viewer_role;`,
+    walkthrough: `Three aggregates per role: distinct people, raw views, and their ratio. \`1.0 * COUNT(*) / COUNT(DISTINCT viewer_id)\` keeps decimals. Ordering by viewers shows which audience adopted and which is missing.`,
     orderMatters: true,
     dpmConnection: {
       text: "Which audience is missing is more useful than how many views there are. A role with zero viewers (Finance, at Meridian) is next week's stakeholder conversation, not a failure of the dashboard.",
@@ -566,6 +590,7 @@ SELECT dashboard, month, views,
 FROM m
 ORDER BY dashboard, month;`,
     solution: `WITH m AS (SELECT dashboard, substr(viewed_at, 1, 7) AS month, COUNT(*) AS views FROM dashboard_views GROUP BY dashboard, month) SELECT dashboard, month, views, views - LAG(views) OVER (PARTITION BY dashboard ORDER BY month) AS change_vs_prev FROM m ORDER BY dashboard, month;`,
+    walkthrough: `Aggregate first: the CTE \`m\` makes one row per dashboard-month. Then \`LAG(views) OVER (PARTITION BY dashboard ORDER BY month)\` reads the previous month *within the same dashboard*; subtracting gives the change. The first month has no previous row, so it's NULL.`,
     orderMatters: true,
     dpmConnection: {
       text: "Grain first (one row per dashboard-month), window second. The story in the output, legacy fading while the new product grows, is the evidence that lets you retire the old report with a redirect instead of a memo.",
@@ -592,6 +617,7 @@ WHERE stage IN ('closed_won', 'closed_lost')
 GROUP BY cohort_month
 ORDER BY cohort_month;`,
     solution: `SELECT substr(created_date, 1, 7) AS cohort_month, COUNT(*) AS resolved, ROUND(1.0 * SUM(stage = 'closed_won') / COUNT(*), 4) AS conversion_rate FROM deals WHERE stage IN ('closed_won', 'closed_lost') AND created_date <= '2026-06-30' GROUP BY cohort_month ORDER BY cohort_month;`,
+    walkthrough: `Two filters remove the artifact: resolved deals only, and cohorts created on or before 30 June so they've had time to close. Then the chapter-1 conversion formula per \`cohort_month\`. If May and June still look low here, the drop is real.`,
     orderMatters: true,
     dpmConnection: {
       text: "The first RCA step is proving the number is real, not an artifact of cohorts that haven't had time to close. May and June should still look low after this filter. If they didn't, the meeting would be over.",
@@ -622,6 +648,7 @@ FROM r
 GROUP BY region, source
 ORDER BY region, source;`,
     solution: `WITH r AS (SELECT d.stage, d.source, a.region, CASE WHEN d.created_date < '2026-05-01' THEN 'before' ELSE 'during' END AS period FROM deals d JOIN accounts a ON a.account_id = d.account_id WHERE d.stage IN ('closed_won', 'closed_lost') AND d.created_date <= '2026-06-30') SELECT region, source, ROUND(1.0 * SUM(period = 'before' AND stage = 'closed_won') / SUM(period = 'before'), 2) AS conv_before, ROUND(1.0 * SUM(period = 'during' AND stage = 'closed_won') / SUM(period = 'during'), 2) AS conv_during, SUM(period = 'during') AS deals_during FROM r GROUP BY region, source ORDER BY region, source;`,
+    walkthrough: `The CTE \`r\` joins region onto deals and labels each deal \`before\` or \`during\` by created date. Conditional sums do the rest: \`SUM(period = 'before' AND stage = 'closed_won') / SUM(period = 'before')\` is the before-rate, and likewise for during. \`GROUP BY region, source\` yields one row per cell.`,
     orderMatters: true,
     dpmConnection: {
       text: "One query, nine cells, and only one of them collapses. A price increase would depress every cell; a vendor change for AMER outbound leads depresses exactly one. This is how the tree kills theories cheaply.",
@@ -662,6 +689,7 @@ WHERE steps.stage = 'negotiation' AND steps.days IS NOT NULL
 GROUP BY seg.period
 ORDER BY seg.period;`,
     solution: `WITH h AS (SELECT DISTINCT deal_id, stage, entered_at FROM deal_stage_history), steps AS (SELECT deal_id, stage, julianday(LEAD(entered_at) OVER (PARTITION BY deal_id ORDER BY entered_at)) - julianday(entered_at) AS days FROM h), seg AS (SELECT d.deal_id, CASE WHEN d.created_date < '2026-05-01' THEN 'before' ELSE 'during' END AS period FROM deals d JOIN accounts a ON a.account_id = d.account_id WHERE a.region = 'AMER' AND d.source = 'Outbound' AND d.created_date <= '2026-06-30') SELECT seg.period, ROUND(AVG(steps.days), 1) AS avg_days_in_negotiation, COUNT(*) AS deals FROM steps JOIN seg ON seg.deal_id = steps.deal_id WHERE steps.stage = 'negotiation' AND steps.days IS NOT NULL GROUP BY seg.period ORDER BY seg.period;`,
+    walkthrough: `\`steps\` is the chapter-2 LEAD-based time-in-stage. \`seg\` picks AMER × Outbound deals and labels the period. Joining them and keeping \`stage = 'negotiation'\` isolates that stage; \`AVG(days)\` per period shows how much longer the affected deals sat there.`,
     orderMatters: true,
     dpmConnection: {
       text: "Deals still reach negotiation, then stall and die. Late-funnel losses with longer negotiation point at lead quality, not at reps' data hygiene. Three CTEs, each named for what it produces, is how a Data PM keeps a query like this readable in a meeting.",
@@ -684,6 +712,7 @@ WHERE a.region = 'AMER' AND d.source = 'Outbound'
 GROUP BY d.owner
 ORDER BY lost_value DESC;`,
     solution: `SELECT d.owner, COUNT(*) AS lost_deals, SUM(d.amount) AS lost_value FROM deals d JOIN accounts a ON a.account_id = d.account_id WHERE a.region = 'AMER' AND d.source = 'Outbound' AND d.stage = 'closed_lost' AND d.created_date BETWEEN '2026-05-01' AND '2026-06-30' GROUP BY d.owner ORDER BY lost_value DESC;`,
+    walkthrough: `A plain filtered aggregate: the segment (region, source), the outcome (\`closed_lost\`), and the window (\`created_date BETWEEN\` May 1 and June 30). \`GROUP BY d.owner\` splits the loss by rep; SUM and COUNT size it in dollars and deals.`,
     orderMatters: true,
     dpmConnection: {
       text: "Root cause work ends with a size and an owner, not a chart. This is the slide: cause, deals and dollars affected, alternatives ruled out, proposed fix.",
@@ -725,6 +754,7 @@ LEFT JOIN b ON b.month = m.month
 LEFT JOIN r ON r.month = m.month
 ORDER BY m.month;`,
     solution: `WITH b AS (SELECT substr(closed_date, 1, 7) AS month, SUM(amount) AS bookings FROM deals WHERE stage = 'closed_won' AND closed_date IS NOT NULL GROUP BY month), r AS (SELECT substr(transaction_date, 1, 7) AS month, SUM(amount) AS revenue FROM transactions GROUP BY month), months AS (SELECT month FROM b UNION SELECT month FROM r) SELECT m.month, COALESCE(b.bookings, 0) AS bookings, COALESCE(r.revenue, 0) AS revenue, COALESCE(r.revenue, 0) - COALESCE(b.bookings, 0) AS difference FROM months m LEFT JOIN b ON b.month = m.month LEFT JOIN r ON r.month = m.month ORDER BY m.month;`,
+    walkthrough: `\`b\` sums bookings by close month, \`r\` sums transactions by transaction month. \`months\` is the UNION of both key sets, so no month is lost. LEFT JOINing both onto \`months\` and wrapping in \`COALESCE(..., 0)\` lets you subtract even when one side is missing.`,
     orderMatters: true,
     dpmConnection: {
       text: "Neither number is wrong. Bookings is what Sales books; revenue is what Finance collects. The reconciliation is the bridge on the board slide, and the SQL pattern (UNION of keys, LEFT JOIN both sides) is how you compare any two metrics that should agree.",
@@ -752,6 +782,7 @@ FROM ranked
 GROUP BY bucket
 ORDER BY amount DESC;`,
     solution: `WITH ranked AS (SELECT *, ROW_NUMBER() OVER (PARTITION BY deal_id, amount, transaction_date, type ORDER BY transaction_id) AS rn FROM transactions) SELECT CASE WHEN rn > 1 THEN 'duplicate' ELSE type END AS bucket, COUNT(*) AS transactions, SUM(amount) AS amount FROM ranked GROUP BY bucket ORDER BY amount DESC;`,
+    walkthrough: `\`ROW_NUMBER() OVER (PARTITION BY deal_id, amount, transaction_date, type ORDER BY transaction_id)\` gives the first copy of each payment rn = 1 and any extra copies rn > 1. The CASE relabels those extras \`duplicate\`; the rest keep their type. Grouping by that bucket produces the bridge.`,
     orderMatters: true,
     dpmConnection: {
       text: "Every dollar of the difference now has a name. 'Initial' should reconcile to bookings; renewals and upsells are the healthy part of the gap; duplicates are the part you remove. This is the bridge the CFO puts under the two numbers.",
@@ -775,6 +806,7 @@ SELECT month, revenue,
 FROM m
 ORDER BY month;`,
     solution: `WITH m AS (SELECT substr(transaction_date, 1, 7) AS month, SUM(amount) AS revenue FROM transactions GROUP BY month) SELECT month, revenue, SUM(revenue) OVER (ORDER BY month) AS running_total FROM m ORDER BY month;`,
+    walkthrough: `The CTE \`m\` aggregates to one row per month first. \`SUM(revenue) OVER (ORDER BY month)\` then accumulates month by month. Without the CTE the window would step up on every transaction row and the intermediate points would be wrong.`,
     orderMatters: true,
     dpmConnection: {
       text: "Grain first, window second. Skip the CTE and the running total steps up on every transaction row instead of every month. This query becomes Meridian's first gold metric with a written definition, a test, and an SLO.",
@@ -815,6 +847,7 @@ LEFT JOIN rev r ON r.month = c.month
 WHERE c.month IN ('2026-06', '2026-07', '2026-08')
 ORDER BY c.month;`,
     solution: `WITH rev AS (SELECT substr(transaction_date, 1, 7) AS month, SUM(amount) AS revenue_generated FROM transactions GROUP BY month), closed AS (SELECT substr(closed_date, 1, 7) AS month, SUM(CASE WHEN stage = 'closed_won' THEN amount ELSE 0 END) AS deals_closed_value, ROUND(1.0 * SUM(stage = 'closed_won') / COUNT(*), 4) AS conversion_rate FROM deals WHERE closed_date IS NOT NULL AND stage IN ('closed_won', 'closed_lost') GROUP BY month) SELECT c.month, COALESCE(r.revenue_generated, 0) AS revenue_generated, c.deals_closed_value, c.conversion_rate FROM closed c LEFT JOIN rev r ON r.month = c.month WHERE c.month IN ('2026-06', '2026-07', '2026-08') ORDER BY c.month;`,
+    walkthrough: `\`rev\` groups transactions by month; \`closed\` groups closed deals by close month, computing won value and the win rate among deals closed that month. They're joined on \`month\` (LEFT, with COALESCE) and filtered to the three months requested: North Star, functional, granular in one result.`,
     orderMatters: true,
     dpmConnection: {
       text: "North Star, functional, granular: one definition each, one query, one owner. Six weeks ago these were three arguments. Now they are a semantic contract that a dashboard, a finance analyst, and an AI agent can all read the same way.",

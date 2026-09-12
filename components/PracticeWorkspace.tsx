@@ -28,6 +28,8 @@ export type WorkspaceExercise = {
   prompt: string;
   starter: string;
   hint: string;
+  solution: string;
+  walkthrough: string;
   dpmConnection: DpmConnection;
 };
 
@@ -56,6 +58,17 @@ const DIFF_CLASS: Record<Difficulty, string> = {
   core: "bg-accent-soft text-accent",
   advanced: "bg-warn-soft text-warn",
 };
+
+/** Light formatter so single-line reference SQL reads as a query; Python is shown as written. */
+function formatSolution(code: string, kind: ExerciseKind): string {
+  if (kind !== "sql" || code.includes("\n")) return code;
+  return code
+    .replace(/\s+(FROM|WHERE|GROUP BY|HAVING|ORDER BY|LIMIT|LEFT JOIN|JOIN|UNION)\s+/g, "\n$1 ")
+    .replace(/\)\s+SELECT\s+/g, ")\nSELECT ")
+    .replace(/,\s+(\w+) AS \(/g, ",\n$1 AS (")
+    .replace(/^WITH\s+/, "WITH ")
+    .trim();
+}
 
 function StatusDot({ status }: { status: ExerciseStatus }) {
   const cls = status === "solved" ? "bg-success" : status === "attempted" ? "bg-warn" : "bg-border";
@@ -166,6 +179,7 @@ function ExercisePanel({
   const { recordAttempt } = useProgress();
   const [code, setCode] = useState(exercise.starter);
   const [showHint, setShowHint] = useState(false);
+  const [showSolution, setShowSolution] = useState(false);
   const [running, setRunning] = useState(false);
   const [outcome, setOutcome] = useState<RunOutcome | null>(null);
   const [gradeResult, setGradeResult] = useState<GradeOutcome | null>(null);
@@ -244,10 +258,32 @@ function ExercisePanel({
           <button onClick={() => setShowHint((s) => !s)} className="px-3 py-2 rounded-md text-sm text-muted hover:text-fg ml-auto">
             {showHint ? "Hide hint" : "Hint"}
           </button>
+          <button onClick={() => setShowSolution((s) => !s)} className="px-3 py-2 rounded-md text-sm text-muted hover:text-fg">
+            {showSolution ? "Hide solution" : "Show solution"}
+          </button>
         </div>
         {prepStatus && <p className="text-sm text-muted">{prepStatus}</p>}
         {showHint && (
           <p className="text-sm bg-warn-soft text-warn border border-warn/20 rounded-md px-3 py-2">{exercise.hint}</p>
+        )}
+        {showSolution && (
+          <div className="bg-surface border border-border rounded-xl p-4 space-y-3 animate-pop">
+            <div className="flex items-center justify-between gap-3">
+              <p className="text-xs uppercase tracking-wide text-muted">Reference solution</p>
+              <button
+                onClick={() => setCode(formatSolution(exercise.solution, kind))}
+                disabled={running}
+                className="text-xs px-2.5 py-1.5 rounded-md border border-border hover:bg-surface-2"
+              >
+                Use this solution
+              </button>
+            </div>
+            <pre className="text-sm font-mono bg-code-bg border border-border rounded-lg px-3 py-2 overflow-x-auto whitespace-pre">
+              {formatSolution(exercise.solution, kind)}
+            </pre>
+            <p className="text-xs uppercase tracking-wide text-muted">Why it works</p>
+            <Markdown className="text-sm">{exercise.walkthrough}</Markdown>
+          </div>
         )}
       </div>
 

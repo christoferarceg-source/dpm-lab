@@ -36,6 +36,8 @@ export type SqlExercise = {
   starterQuery: string;
   /** Reference solution. scripts/compute-expected.mts runs it to produce content/expected-sql.json. */
   solution: string;
+  /** Markdown: why the solution works, clause by clause. Shown by "Show solution". */
+  walkthrough: string;
   /** If false (default), row order is ignored when grading. */
   orderMatters?: boolean;
   dpmConnection: DpmConnection;
@@ -56,6 +58,8 @@ export type PythonExercise = {
   starterCode: string;
   /** Reference solution (Python). scripts/compute-expected.mts runs it in Pyodide to produce content/expected-python.json. */
   solution: string;
+  /** Markdown: why the solution works. Shown by "Show solution". */
+  walkthrough: string;
   orderMatters?: boolean;
   dpmConnection: DpmConnection;
   hint: string;

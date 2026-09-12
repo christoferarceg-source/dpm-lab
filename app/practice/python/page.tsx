@@ -57,6 +57,8 @@ export default function PythonPracticePage() {
         prompt: e.prompt,
         starter: e.starterCode,
         hint: e.hint,
+        solution: e.solution,
+        walkthrough: e.walkthrough,
         dpmConnection: e.dpmConnection,
       }))}
       prepare={prepare}

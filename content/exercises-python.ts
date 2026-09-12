@@ -19,6 +19,7 @@ export const pythonExercises: PythonExercise[] = [
     prompt: `\`deals\` is a DataFrame. Set \`result\` to the number of rows in it.`,
     starterCode: `result = None  # TODO: len(...)`,
     solution: `result = len(deals)`,
+    walkthrough: `A DataFrame behaves like a table; \`len(deals)\` returns its number of rows, the same as \`COUNT(*)\`.`,
     dpmConnection: { text: "len() on a DataFrame is COUNT(*). Knowing the row count is the sanity check before any other number.", kbSlug: "python-pandas-101" },
     hint: "len(deals)",
   },
@@ -31,6 +32,7 @@ export const pythonExercises: PythonExercise[] = [
     starterCode: `qualified = deals[deals["stage"] == "qualified"]
 result = None  # TODO: sum of qualified["amount"]`,
     solution: `qualified = deals[deals["stage"] == "qualified"]\nresult = int(qualified["amount"].sum())`,
+    walkthrough: `\`deals["stage"] == "qualified"\` produces True/False per row; wrapping it in \`deals[...]\` keeps the True rows. \`["amount"]\` selects one column and \`.sum()\` adds it up. \`int()\` turns the numpy number into a plain integer.`,
     dpmConnection: { text: "Filter, pick a column, aggregate: WHERE + SUM in pandas.", kbSlug: "python-pandas-101" },
     hint: "qualified['amount'].sum()",
   },
@@ -43,6 +45,7 @@ result = None  # TODO: sum of qualified["amount"]`,
     starterCode: `counts = deals.groupby("stage")["deal_id"].count()
 result = None  # TODO: counts.to_dict()`,
     solution: `counts = deals.groupby("stage")["deal_id"].count()\nresult = {k: int(v) for k, v in counts.to_dict().items()}`,
+    walkthrough: `\`groupby("stage")\` splits rows by stage; \`["deal_id"].count()\` counts rows in each group. \`.to_dict()\` gives \`{stage: count}\`; the comprehension casts each count to a plain \`int\`.`,
     dpmConnection: { text: "groupby + count is GROUP BY + COUNT(*). to_dict() hands the result back as plain keys and values.", kbSlug: "python-pandas-101" },
     hint: "counts.to_dict() — wrap values in int() if you build it by hand.",
   },
@@ -59,6 +62,7 @@ Set \`result\` to the **number** of rows where \`stage == "closed_won"\`.`,
 won = deals[deals["stage"] == "closed_won"]
 result = None  # TODO: how many rows are in won?`,
     solution: `won = deals[deals["stage"] == "closed_won"]\nresult = len(won)`,
+    walkthrough: `Boolean filter, then \`len()\`. \`deals["stage"] == "closed_won"\` is the WHERE; \`len(won)\` is COUNT(*).`,
     dpmConnection: {
       text: "Boolean filtering is the pandas equivalent of a WHERE clause. Being able to reproduce a number a dashboard shows is how a Data PM verifies it instead of trusting it.",
       kbSlug: "four-key-shifts",
@@ -74,6 +78,7 @@ result = None  # TODO: how many rows are in won?`,
     starterCode: `won = deals[deals["stage"] == "closed_won"]
 result = None  # TODO: sum of won["amount"]`,
     solution: `won = deals[deals["stage"] == "closed_won"]\nresult = won["amount"].sum()`,
+    walkthrough: `Filter to won rows, select the \`amount\` column, \`.sum()\`. The grader accepts a numpy number, but \`int()\` is a good habit.`,
     dpmConnection: {
       text: "Same functional metric you computed in SQL. A Data PM who can compute a metric two independent ways can catch a pipeline bug that only shows up in one path.",
       kbSlug: "metric-types",
@@ -88,6 +93,7 @@ result = None  # TODO: sum of won["amount"]`,
     prompt: `Set \`result\` to **revenue_generated**: the sum of \`amount\` across the \`transactions\` DataFrame.`,
     starterCode: `result = None  # TODO: total of transactions["amount"]`,
     solution: `result = transactions["amount"].sum()`,
+    walkthrough: `No filter: the whole \`transactions["amount"]\` column summed is the North Star.`,
     dpmConnection: {
       text: "A different table than deals. The gap between revenue and won-deal value is renewals plus upsells (and, until chapter 3, some duplicates). Explaining that gap to the CFO is chapter 6.",
       kbSlug: "metric-types",
@@ -104,6 +110,7 @@ result = None  # TODO: sum of won["amount"]`,
 lost = (deals["stage"] == "closed_lost").sum()
 result = None  # TODO: round(won / (won + lost), 4)`,
     solution: `won = (deals["stage"] == "closed_won").sum()\nlost = (deals["stage"] == "closed_lost").sum()\nresult = round(float(won / (won + lost)), 4)`,
+    walkthrough: `\`(deals["stage"] == "closed_won").sum()\` counts True values, the pandas CASE WHEN. Divide wins by wins plus losses, cast to float, round to 4.`,
     dpmConnection: {
       text: "Summing a boolean Series is the pandas idiom for a conditional COUNT, the same trick as CASE WHEN in SQL. The definition decision (exclude open deals) must be written down or every consumer computes it differently.",
       kbSlug: "ontology-as-infrastructure",
@@ -133,6 +140,7 @@ grouped = (merged.groupby("account_name", as_index=False)["amount"].sum()
     .rename(columns={"amount": "total_won"})
     .sort_values(["total_won", "account_name"], ascending=[False, True]))
 result = grouped.to_dict("records")`,
+    walkthrough: `\`merge(accounts, on="account_id")\` is the JOIN that brings in \`account_name\`. \`groupby("account_name", as_index=False)["amount"].sum()\` is GROUP BY + SUM; \`rename\` sets the column name the grader expects; \`sort_values\` with two keys matches the ORDER BY; \`to_dict("records")\` returns rows as dicts.`,
     orderMatters: true,
     dpmConnection: {
       text: "merge = JOIN, groupby = GROUP BY. This is the logical model's 'Relationships' (accounts 1:N deals) turned into a measure, the exact structure of a Metric Dependency Tree node.",
@@ -152,6 +160,7 @@ result = None  # TODO: {"owner": ..., "total_won": ...} for the first row`,
     solution: `won = deals[deals["stage"] == "closed_won"]
 by_owner = won.groupby("owner")["amount"].sum().sort_values(ascending=False)
 result = {"owner": by_owner.index[0], "total_won": int(by_owner.iloc[0])}`,
+    walkthrough: `\`groupby("owner")["amount"].sum()\` gives a Series indexed by owner; \`sort_values(ascending=False)\` puts the top rep first. \`.index[0]\` is that owner's name and \`.iloc[0]\` the value, cast to int.`,
     dpmConnection: {
       text: "Reading one row out of a grouped Series: by_owner.index[0] and by_owner.iloc[0]. Look at the concentration: if one rep is a big share of won value, one bad record on their deals swings the North Star.",
       kbSlug: "bullseye-data-product-market-fit",
@@ -184,6 +193,7 @@ grouped = (merged.groupby("region", as_index=False)["is_won"].mean()
     .rename(columns={"is_won": "conversion_rate"}).sort_values("region"))
 grouped["conversion_rate"] = grouped["conversion_rate"].round(4)
 result = grouped.to_dict("records")`,
+    walkthrough: `\`isin\` keeps resolved deals; \`merge\` adds region; \`assign(is_won=...)\` creates a 0/1 column. The mean of a 0/1 column is the rate, so \`groupby("region")["is_won"].mean()\` is conversion by region. Round, sort, \`to_dict("records")\`.`,
     orderMatters: true,
     dpmConnection: {
       text: "The mean of a 0/1 indicator column IS the rate: a compact pandas idiom worth memorizing. Cross-entity slicing (measure on deals, dimension on accounts) is where join mistakes silently corrupt a metric.",
@@ -209,6 +219,7 @@ result = None  # TODO: grouped.to_dict("records")`,
 grouped = (lost.groupby("source").agg(lost_value=("amount", "sum"), lost_count=("deal_id", "count"))
     .reset_index().sort_values("lost_value", ascending=False))
 result = grouped.to_dict("records")`,
+    walkthrough: `Filter to lost deals, then named aggregation: \`.agg(lost_value=("amount", "sum"), lost_count=("deal_id", "count"))\` computes both measures in one call. \`reset_index\` turns the group key back into a column before sorting and exporting.`,
     orderMatters: true,
     dpmConnection: {
       text: "Named aggregation (.agg(name=(col, fn))) computes several measures at once. The output is the raw material for an RCA conversation; the Data PM's job starts after this query.",

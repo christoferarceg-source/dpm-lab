@@ -69,6 +69,22 @@ export type GradeResult = {
 };
 
 export function gradeSql(exercise: SqlExercise, expected: SqlExpected, result: QueryResult): GradeResult {
+  if (result.columns.length === 0) {
+    return {
+      passed: false,
+      reason: "Your query ran but returned no rows. Check the WHERE condition (spelling and quotes of the value) and that you're reading the right table.",
+    };
+  }
+  if (
+    result.rows.length === 1 &&
+    result.rows[0].every((v) => v === null) &&
+    !(expected.rows.length === 1 && expected.rows[0].every((v) => v === null))
+  ) {
+    return {
+      passed: false,
+      reason: "Your aggregate ran over zero rows, so it returned NULL. The WHERE matched nothing: check the value's spelling and quotes.",
+    };
+  }
   if (!columnsEqual(result.columns, expected.columns)) {
     return {
       passed: false,
