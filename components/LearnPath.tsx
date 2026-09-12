@@ -88,7 +88,7 @@ export function LearnPath() {
                   <li key={lesson.id} className="relative" style={{ transform: `translateX(${offset}px)` }}>
                     {isNext && (
                       <span
-                        className="absolute -top-8 left-1/2 -translate-x-1/2 text-[0.65rem] font-bold uppercase tracking-wide px-2 py-0.5 rounded-md text-white animate-pop"
+                        className="absolute left-full top-1/2 -translate-y-1/2 ml-3 text-[0.65rem] font-bold uppercase tracking-wide px-2 py-1 rounded-md text-white animate-pop whitespace-nowrap"
                         style={{ background: unit.color }}
                       >
                         Start
