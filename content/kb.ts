@@ -680,5 +680,217 @@ At Meridian, the metric tree (revenue → bookings → conversion) is an
 **source-aligned** product if it had a contract and an owner.`,
     source: "Modern Data 101 (Defining the True Data Product; Anatomy; Canonical Core; product types), from the user's notes.",
   },
+  {
+    slug: "modern-data-stack-map",
+    title: "The Modern Data Stack: a Map",
+    category: "definition",
+    tags: ["tools", "architecture", "industry"],
+    summary:
+      "Where each category of tool sits between a source system and a decision, which vendors lead each category, and which pieces of Meridian's stack they correspond to.",
+    body: `Vendors change; the layers don't. Read the stack left to right, the way data
+flows, and every tool name becomes a position rather than a brand.
+
+| Layer | What it does | Typical tools | At Meridian |
+|---|---|---|---|
+| **Sources** | Operational systems that create data | CRM (Salesforce, HubSpot), ERP (SAP, NetSuite), product events, files | The CRM, the billing system |
+| **Ingestion / integration** | Move data from sources into storage; batch or streaming | Fivetran, Airbyte, Informatica, Talend, Ab Initio, Kafka, Kinesis | \`crm_deals_ingest\`, \`transactions_ingest\` |
+| **Storage + compute** | Warehouse or lakehouse where data lands and SQL runs | Snowflake, Databricks, BigQuery, Redshift, Microsoft Fabric | The database behind the labs (SQLite stands in) |
+| **Transformation + orchestration** | Turn raw tables into modelled, tested tables on a schedule | dbt, Spark, Airflow, Dagster, Prefect | \`gold_sales_metrics\` and its daily run |
+| **Semantic layer + BI** | Define metrics once; explore and visualise | Looker, Tableau, Power BI, Qlik, Metabase, Redash | The Sales Funnel Accelerator dashboard |
+| **Quality, observability, catalog, governance** | Know it's fresh, complete, unique; find it; control access | Monte Carlo, Great Expectations, Soda, Collibra, Alation, Atlan, Unity Catalog, DataOS | The week 3 SLOs, the ontology in week 6 |
+| **ML / data science** | Train, track, and serve models | MLflow, SageMaker, Vertex AI, Dataiku, Jupyter | The agent pilot in week 6 |
+
+## Three things a Data PM keeps straight
+1. **ETL vs. ELT.** Classic tools (Informatica, Ab Initio) transform *before* loading into a warehouse. The modern pattern loads raw data first (Fivetran) and transforms inside the warehouse (dbt): ELT. That's why Bronze/Silver/Gold exists.
+2. **Batch vs. streaming.** A nightly load is batch (Airflow-scheduled). Events arriving continuously are streaming (Kafka, Kinesis). Most sales analytics is batch; fraud and operations are streaming.
+3. **Where the definition lives.** If "revenue" is computed in five dashboards, you have five definitions. Semantic layers (Looker's LookML, dbt's metrics, DataOS contracts) exist to define it once, in one place, and have every consumer read it.
+
+## How to read Gartner's market categories
+Gartner splits this into Cloud Database Management Systems (warehouses and
+lakehouses), Data Integration Tools, Analytics and BI Platforms, Data Quality
+Solutions, Metadata Management / Data Catalogs, and Data Science and ML
+Platforms. The categories map one-to-one onto the rows above. When someone
+says "we're evaluating a Magic Quadrant leader," ask which row.`,
+    source: "Synthesized for DPM Lab; category structure follows Gartner's data & analytics markets.",
+  },
+  {
+    slug: "tools-warehouses-lakehouses",
+    title: "Warehouses and Lakehouses: Snowflake, Databricks, BigQuery, Redshift, Fabric",
+    category: "definition",
+    tags: ["tools", "warehouse", "lakehouse", "snowflake", "databricks"],
+    summary:
+      "The platforms where data lands and SQL runs. How each one thinks, what it charges you for, and the questions a Data PM asks before a workload lands on it.",
+    body: `All five do the same core job: store large tables and run SQL over them at
+scale. They differ in *how they think* and *what you pay for*.
+
+| Platform | How it thinks | Bills you for | Distinctive pieces |
+|---|---|---|---|
+| **Snowflake** | A cloud data warehouse. Storage and compute are separate; you spin up "virtual warehouses" (compute clusters) per team or workload. | Compute credits per second a warehouse runs, plus storage. | Time Travel (query a table as of yesterday), zero-copy cloning, secure data sharing and a marketplace, Snowpark for Python/Java, Horizon for governance. |
+| **Databricks** | A lakehouse: open files (Parquet) in your cloud storage, made table-like by Delta Lake, processed by Apache Spark. Notebooks in Python, SQL, Scala, R. | Compute (DBUs) for clusters and SQL warehouses, plus your own cloud storage. | Delta Lake, Unity Catalog (governance across workspaces), MLflow (experiments and model registry), Databricks SQL. The medallion Bronze/Silver/Gold pattern comes from here. |
+| **Google BigQuery** | Serverless warehouse: no clusters to manage; you submit SQL and Google allocates capacity. | Bytes scanned per query (on-demand) or reserved "slots"; plus storage. | Tight fit with Google Analytics/Ads, BigQuery ML in SQL, native streaming inserts. |
+| **Amazon Redshift** | AWS's warehouse; provisioned clusters or Serverless. | Node-hours (provisioned) or RPU-seconds (serverless); plus S3 storage via Spectrum. | Deep AWS integration (S3, Glue, Kinesis), Spectrum to query S3 files in place. |
+| **Microsoft Fabric** | A unified SaaS analytics platform: OneLake storage, Synapse warehousing, Data Factory pipelines, Power BI, all in one workspace. | Capacity units (a pooled reservation) rather than per-service meters. | One security and billing model across engineering and BI; the natural choice for Power BI-centric organisations. |
+
+## Your first hour on any of them
+1. Find the **catalog / database / schema** hierarchy and the table you care about.
+2. Run \`SELECT * FROM table LIMIT 20;\` and \`SELECT COUNT(*) ...\`. Everything you practised in the labs works here; the dialect differs slightly (\`LIMIT\` vs \`TOP\`, date functions).
+3. Open the **query history**: who runs what, how often, how expensive. This is the fastest way to learn what a company actually uses.
+4. Look for a **cost or usage dashboard**. Warehouses are where data budgets go.
+
+## Questions a Data PM asks
+- **Which layer is this table?** Raw landing (Bronze), modelled (Silver), or metric-ready (Gold)? Is a dashboard reading from raw?
+- **What does a query cost, and who pays?** A single \`SELECT *\` on BigQuery can scan terabytes. Snowflake warehouses left running burn credits.
+- **Who can see what?** Row/column-level security, PII masking, and where the access policy lives (Unity Catalog, Horizon, IAM).
+- **How fresh is it?** Load time vs. query time; the freshness SLO from week 3 is a query against the warehouse's load metadata.
+- **Can we share it without copying it?** Snowflake sharing and Delta Sharing let you publish a data product to another team or company as a live view.`,
+    source: "Synthesized for DPM Lab from vendor documentation and public positioning (as of 2026).",
+  },
+  {
+    slug: "tools-integration-pipelines",
+    title: "Moving and Shaping Data: Fivetran, Airbyte, dbt, Airflow, Kafka, Informatica, Talend, Ab Initio",
+    category: "definition",
+    tags: ["tools", "integration", "etl", "elt", "streaming", "ab-initio"],
+    summary:
+      "The tools that get data from sources into the warehouse and turn it into modelled tables: managed connectors, SQL transformation, orchestration, streaming, and the enterprise ETL suites.",
+    body: `Two generations coexist. **Enterprise ETL suites** (Informatica, Talend, Ab
+Initio) transform data on their own engines before loading it, with heavy
+lineage and governance built in; you'll meet them in banks, telecoms,
+insurers, and anywhere with decades of batch jobs. The **modern ELT stack**
+(Fivetran or Airbyte to load, dbt to transform in the warehouse, Airflow to
+schedule) is what most new data teams assemble.
+
+| Tool | Role | How you use it | Watch out for |
+|---|---|---|---|
+| **Fivetran** | Managed connectors: SaaS and databases → warehouse, on a schedule, with automatic schema handling. | Pick a source (e.g. Salesforce), authorise, choose tables, set sync frequency. Done. | Priced on rows changed per month (MAR); a wide CRM sync can get expensive. You don't control the transformation. |
+| **Airbyte** | Open-source alternative to Fivetran; hundreds of community connectors; self-host or cloud. | Same flow; more connectors, more maintenance. | Connector quality varies. |
+| **dbt** | Transformations as versioned SQL \`SELECT\`s ("models") that run inside the warehouse, with built-in tests, documentation, and lineage. | Write \`models/gold/sales_metrics.sql\`, declare tests (\`unique\`, \`not_null\`, \`accepted_values\`), run \`dbt build\`. | It's the "T" only; it needs a loader before it and a scheduler around it. Model sprawl without ownership. |
+| **Apache Airflow** | Orchestration: define DAGs (task graphs) in Python, schedule them, retry, alert. | A DAG runs Fivetran → dbt → dashboard refresh at 02:00; the Airflow UI shows every run's status and duration. | Airflow knows a task *ran*, not that its data is right: week 3's whole lesson. Dagster and Prefect are the newer alternatives. |
+| **Apache Kafka** | Distributed event streaming: producers write events to topics; consumers read them in order; partitions scale it. Confluent sells the managed version; AWS Kinesis is the equivalent. | Model each business event (\`deal_stage_changed\`) as a message; downstream systems subscribe. | Exactly-once, ordering, late events, schema evolution (schema registry). Streaming is where "events" in your PRD live. |
+| **Informatica** | The long-standing enterprise data-integration and management suite (PowerCenter on-prem, IDMC in the cloud): integration, quality, MDM, catalog. | Graphical mappings; strong governance and lineage; typical in large regulated enterprises. | Cost and specialist skills; often the incumbent being migrated *from*. |
+| **Talend** | Open-source-rooted ETL/ELT suite with data quality and governance; now part of Qlik. | Graphical job design generating Java; on-prem or cloud. | Mid-market fit; product direction after the Qlik acquisition. |
+| **Ab Initio** | High-performance enterprise data processing platform: a graphical development environment (GDE), a parallel execution engine (the Co>Operating System), and a metadata hub with end-to-end lineage. | Build "graphs" of components (read, transform, join, write) that run in parallel across many CPUs; very fast for huge batch volumes. | Proprietary, expensive, rarely seen outside large banks, telecoms, and government; skills are scarce. When you meet it, the question is usually "what would it take to move this?" |
+
+## How this maps to Meridian
+\`crm_deals_ingest\` is a Fivetran-style connector; \`gold_sales_metrics\` is a
+dbt model run by Airflow; the stage-history log is what a Kafka topic of
+\`deal_stage_changed\` events would give you for free.
+
+## Questions a Data PM asks
+- **ETL or ELT?** If the transform happens before the warehouse, the raw data isn't available to re-derive metrics when the definition changes.
+- **Where are the tests?** dbt tests, Great Expectations, or nowhere?
+- **What happens when a run fails at 02:00?** Who's paged, and how long until recovery (week 3's failed-recovery query)?
+- **How does a schema change upstream reach us?** A renamed CRM field can silently zero a metric.`,
+    source: "Synthesized for DPM Lab from vendor documentation and public positioning (as of 2026).",
+  },
+  {
+    slug: "tools-bi-semantic-layer",
+    title: "Seeing the Data: Tableau, Power BI, Looker, Qlik, Metabase, Redash",
+    category: "definition",
+    tags: ["tools", "bi", "dashboards", "semantic-layer", "tableau"],
+    summary:
+      "BI tools are the consumption layer. The important difference between them is where the metric definition lives: in each dashboard, or in a governed semantic layer everyone reads.",
+    body: `Remember week 2: a dashboard is not the data product; it reads one. The
+question to ask of any BI tool is **where does the definition of revenue
+live?** Tools split into two camps.
+
+| Tool | Camp | How you use it | Strengths / cautions |
+|---|---|---|---|
+| **Tableau** (Salesforce) | Visual exploration first. Definitions can live in Tableau data sources but often live in each workbook. | Connect to a table, drag dimensions and measures onto shelves, build sheets, assemble a dashboard, publish to Tableau Cloud/Server. | Best-in-class visual analysis; risk of metric drift across workbooks; licence per user. |
+| **Microsoft Power BI** | Visual first, with a modelling layer (DAX measures, Power Query). Now part of Fabric. | Import or DirectQuery a model, write DAX measures, build report pages, publish to a workspace. | Ubiquitous in Microsoft shops; cheap per user; DAX has a learning curve; models can sprawl. |
+| **Looker** (Google) | Semantic layer first. LookML defines dimensions and measures in version-controlled code; every explore and dashboard reads them. | Model tables in LookML (views, explores, measures), then users explore without writing SQL. | Governed metrics by design: the tool closest to "one definition, many consumers". Heavier setup; developer skills needed. |
+| **Qlik Sense** | Associative engine: in-memory model where every selection filters everything. | Load data into a Qlik app, build sheets, use associative filtering. | Strong ad-hoc exploration; definitions live in the app's load script. |
+| **Metabase** | Lightweight open-source BI; questions written by clicking or in SQL; simple dashboards. | Point at the warehouse, ask a question, save it to a dashboard. | Great for small teams; limited governance. |
+| **Redash** | Open-source SQL-first query and dashboard tool (the one in your PRD). | Write SQL, save the query, add visualisations, pin to a dashboard, schedule refresh. | Perfect when everyone can write SQL; definitions live in the query text. |
+
+## Semantic layers, in one paragraph
+A semantic layer is the place where *revenue* is defined once as a measure
+over modelled tables, with its dimensions, and every dashboard, notebook, or
+AI agent asks it rather than re-computing. LookML is the classic example;
+dbt's metrics layer, Cube, AtScale, and the semantic model in Fabric play the
+same role. In the Playbook's terms it's the Metric Dependency Tree made
+executable. Without one, week 6's "which revenue number is right?" happens
+every quarter.
+
+## Questions a Data PM asks
+- **Where is this number defined, and can I read the definition?** If the answer is "in the workbook," you have a consumption layer pretending to be a product.
+- **Who owns the dashboard, and who owns the metric under it?** Different people, usually.
+- **How is adoption measured?** Distinct viewers per week by role (week 4), not views.
+- **What happens when the definition changes?** One edit in a semantic layer, or twenty workbooks?`,
+    source: "Synthesized for DPM Lab from vendor documentation and public positioning (as of 2026).",
+  },
+  {
+    slug: "tools-quality-governance-catalog",
+    title: "Trusting and Governing: Monte Carlo, Great Expectations, Soda, Collibra, Alation, Atlan, Unity Catalog, DataOS",
+    category: "definition",
+    tags: ["tools", "data-quality", "observability", "catalog", "governance", "dataos"],
+    summary:
+      "The tools that turn week 3's SLOs into monitors, make data findable, and encode who may see what. Also where data product platforms like DataOS sit.",
+    body: `Week 3 wrote SLOs as queries. These tools run them for you, tell people
+about breaches, and keep the definitions and access rules in one place.
+
+## Quality and observability
+| Tool | What it does | How you use it |
+|---|---|---|
+| **Monte Carlo** | Data observability: automatically monitors freshness, volume, schema changes, and distribution anomalies across the warehouse; shows lineage so you know which dashboards a broken table feeds. | Connect the warehouse; it learns normal patterns and alerts on deviations (your partial-file day would trip a volume monitor). Add custom SQL rules for business checks. |
+| **Great Expectations** | Open-source framework of "expectations" (\`expect_column_values_to_be_unique\`) run inside pipelines, producing data docs. | Define expectation suites per table; run them as a pipeline step; fail the run on breach. |
+| **Soda** | Checks written in a YAML-like language (SodaCL) run against the warehouse on a schedule, with a cloud UI for incidents. | \`checks for transactions: - duplicate_count(deal_id, amount, transaction_date) = 0\`. |
+| **dbt tests** | The simplest option if you already use dbt: \`unique\`, \`not_null\`, \`accepted_values\`, \`relationships\`, plus custom SQL tests. | Declare in the model's YAML; \`dbt test\` runs them. |
+
+The difference: Monte Carlo *discovers* problems you didn't write checks for;
+Great Expectations, Soda, and dbt tests *enforce* the ones you did. Mature
+teams use both.
+
+## Catalog and governance
+| Tool | What it does |
+|---|---|
+| **Collibra** | Enterprise data governance: business glossary, data ownership, policies, workflows for approvals; strong in regulated industries. |
+| **Alation** | Data catalog with search, popularity signals from query logs, stewardship, and lineage; the "Google for your data" pitch. |
+| **Atlan** | Modern collaborative catalog: active metadata, lineage, Slack-style collaboration, embedded in the tools people already use. |
+| **Unity Catalog** (Databricks) / **Snowflake Horizon** | Platform-native governance: one place for permissions, lineage, tags, and discovery inside the warehouse itself. |
+
+## Data product platforms
+**DataOS** (The Modern Data Company, the publisher of the Playbook and the
+State of Data Products reports) is a platform built around the data product
+idea itself: a self-serve layer where an engineer declares input ports,
+transforms, output ports, and SLOs in a spec, with contracts, a semantic
+model, and governance as first-class resources. Competing ideas appear as
+"data product" features in Databricks, Snowflake, and catalogs like Atlan.
+Whatever the vendor, the test is the same: can you see the owner, the
+contract, the SLOs, and the consumers of a product in one place?
+
+## Questions a Data PM asks
+- **Which SLOs are monitored, and who gets the page?** A check nobody receives is documentation.
+- **Can a new analyst find the right table in five minutes?** That's what the catalog is for; popularity and ownership matter more than descriptions.
+- **Where is the access policy, and is it enforced or advisory?** PII masking in Unity Catalog is enforced; a Collibra policy document is advisory unless wired to the platform.
+- **Does the ontology from week 6 live in a tool, or in a slide?**`,
+    source: "Synthesized for DPM Lab from vendor documentation and public positioning (as of 2026).",
+  },
+  {
+    slug: "tools-ml-platforms",
+    title: "Data Science and ML Platforms: MLflow, SageMaker, Vertex AI, Dataiku, Notebooks",
+    category: "definition",
+    tags: ["tools", "ml", "notebooks", "mlflow"],
+    summary:
+      "Where models are built, tracked, and served, and what a Data PM needs from them: reproducibility, a registry, and evaluation before anything reaches a decision.",
+    body: `A Data PM rarely trains models, but often owns the data products they
+consume and the decisions they feed. Know the parts.
+
+| Tool | What it does | What a DPM asks of it |
+|---|---|---|
+| **Jupyter / Databricks notebooks / Hex / Deepnote** | Interactive Python (the pandas you practised) with charts and prose; where analysis and prototyping happen. | Is the notebook reading a governed table or a CSV someone exported in March? |
+| **MLflow** (open source, built into Databricks) | Experiment tracking (parameters, metrics, artifacts per run), a model registry with stages (staging, production), and packaging for deployment. | Which model version is live, what data was it trained on, and what were its metrics? |
+| **Amazon SageMaker** | AWS's end-to-end ML platform: notebooks, training jobs, feature store, model hosting, pipelines, monitoring. | Who owns the feature definitions, and do they match the warehouse's? |
+| **Google Vertex AI** | GCP's equivalent: AutoML and custom training, feature store, pipelines, model monitoring, plus the Gemini model APIs. | Same, plus cost per prediction. |
+| **Dataiku** | Visual data science platform for mixed teams: drag-and-drop recipes and code side by side, deployment and governance included. | Good for analyst-heavy teams; check that "recipes" don't become an ungoverned second transformation layer. |
+| **Feature stores** (Feast, Tecton, platform-native) | Define a feature (e.g. \`days_in_negotiation\`) once and serve the same value to training and to production. | The ML version of the semantic layer: one definition, two consumers. |
+
+## The Data PM's checklist for anything model-shaped
+1. **Lineage**: which data product does it read? Is that product's SLO good enough for this decision?
+2. **Reproducibility**: can we retrain the live version from tracked code, data, and parameters?
+3. **Evaluation**: a held-out set with agreed answers, run before every change (week 6's agent lesson applies to classical models too).
+4. **Monitoring**: drift in inputs and outputs, not just uptime.
+5. **Cost per correct prediction**, the Lean AI metric.`,
+    source: "Synthesized for DPM Lab from vendor documentation and public positioning (as of 2026).",
+  },
 ];
 

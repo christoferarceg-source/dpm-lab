@@ -226,5 +226,41 @@ export const flashcards: Flashcard[] = [
     front: "Name the three data product types and what each is for.",
     back: "Source-aligned: expose domain data faithfully with contracts. Aggregate: consolidate cross-domain logic into standard measures. Consumer-aligned: purpose-built for one use case's latency, interface, and guarantees.",
   },
+  {
+    id: "fc-stack-layers",
+    kbSlug: "modern-data-stack-map",
+    front: "Name the layers of the modern data stack in the order data flows, with one tool each.",
+    back: "Sources (CRM) → ingestion (Fivetran, Kafka) → warehouse/lakehouse (Snowflake, Databricks) → transformation/orchestration (dbt, Airflow) → semantic layer/BI (Looker, Tableau); quality/catalog/governance across all (Monte Carlo, Atlan); ML platforms at the end (MLflow).",
+  },
+  {
+    id: "fc-etl-elt",
+    kbSlug: "modern-data-stack-map",
+    front: "ETL vs ELT, and why it matters to a Data PM?",
+    back: "ETL transforms before loading (Informatica, Ab Initio). ELT loads raw first and transforms in the warehouse (Fivetran + dbt), so raw stays available to re-derive metrics when a definition changes.",
+  },
+  {
+    id: "fc-snowflake-databricks",
+    kbSlug: "tools-warehouses-lakehouses",
+    front: "Snowflake vs Databricks in one line each.",
+    back: "Snowflake: cloud warehouse, storage and compute separated, billed by warehouse run-time. Databricks: lakehouse on open files (Delta Lake) processed by Spark, with notebooks, Unity Catalog, and MLflow.",
+  },
+  {
+    id: "fc-ab-initio",
+    kbSlug: "tools-integration-pipelines",
+    front: "What is Ab Initio and where do you meet it?",
+    back: "A proprietary high-performance parallel ETL platform (GDE graphs, Co>Operating System, metadata hub with lineage). Large banks, telecoms, government; usually the incumbent, and the question is what it would take to move off it.",
+  },
+  {
+    id: "fc-semantic-layer",
+    kbSlug: "tools-bi-semantic-layer",
+    front: "What is a semantic layer, and which tool is the classic example?",
+    back: "The place where a metric is defined once over modelled tables and every dashboard, notebook, or agent reads it. Looker's LookML; also dbt metrics, Cube, Fabric's semantic model.",
+  },
+  {
+    id: "fc-observability-vs-tests",
+    kbSlug: "tools-quality-governance-catalog",
+    front: "Monte Carlo vs Great Expectations / Soda / dbt tests?",
+    back: "Monte Carlo discovers anomalies you didn't write checks for (freshness, volume, schema) with lineage. The others enforce the checks you did write. Mature teams use both.",
+  },
 ];
 

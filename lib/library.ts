@@ -63,6 +63,15 @@ export const libraryParts: LibraryPart[] = [
       "Why this role matters more now. Agents act on business terms without a human to reconcile meaning, so ontologies became infrastructure. Monitoring tells you an agent ran, not that it was right. Cost per correct answer replaced raw capability as the number a board reads. And one manufacturing case study that shows the whole pattern in a different industry.",
     entries: ["ontology-as-infrastructure", "agent-observability-gap", "lean-ai-cost-economics", "oee-manufacturing-case-study"],
   },
+  {
+    slug: "tools",
+    number: 5,
+    title: "Tools of the trade",
+    kicker: "The market",
+    intro:
+      "The names you'll hear in every interview and vendor pitch, organised the way the market is: a map of the stack first, then the warehouses and lakehouses where SQL runs (Snowflake, Databricks, BigQuery, Redshift, Fabric), the tools that move and shape data (Fivetran, dbt, Airflow, Kafka, Informatica, Talend, Ab Initio), the BI and semantic layers people actually look at (Tableau, Power BI, Looker, Qlik, Redash), the quality and governance tools that turn SLOs into monitors (Monte Carlo, Great Expectations, Soda, Collibra, Alation, Atlan, DataOS), and the ML platforms. Each entry says what the tool does, how you'd use it in your first hour, and what a Data PM asks about it.",
+    entries: ["modern-data-stack-map", "tools-warehouses-lakehouses", "tools-integration-pipelines", "tools-bi-semantic-layer", "tools-quality-governance-catalog", "tools-ml-platforms"],
+  },
 ];
 
 const bySlug = new Map(kbEntries.map((e) => [e.slug, e]));

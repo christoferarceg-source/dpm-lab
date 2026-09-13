@@ -40,6 +40,7 @@ export default function PracticeIndex() {
       {units.map((u) => {
         const sql = sqlExercisesForChapter(u.number);
         const py = pythonExercisesForChapter(u.number);
+        if (sql.length + py.length === 0) return null;
         return (
           <section key={u.number} className="bg-surface border border-border rounded-2xl overflow-hidden">
             <div className="px-4 py-3 text-white flex items-center justify-between" style={{ background: u.color }}>

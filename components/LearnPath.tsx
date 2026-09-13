@@ -103,7 +103,7 @@ export function LearnPath() {
                     Story
                   </Link>
                 ) : (
-                  <span className="inline-block text-xs font-medium bg-white/20 rounded-md px-2.5 py-1.5">Basics</span>
+                  <span className="inline-block text-xs font-medium bg-white/20 rounded-md px-2.5 py-1.5">{unit.number === 0 ? "Basics" : "Reference"}</span>
                 )}
               </div>
             </div>
@@ -113,7 +113,7 @@ export function LearnPath() {
                   <div className="h-full rounded-full transition-all" style={{ width: `${Math.round(p.fraction * 100)}%`, background: unit.color }} />
                 </div>
                 <p className="text-xs text-muted tabular-nums shrink-0">
-                  {p.lessonsDone}/{p.lessonsTotal} lessons · Lab {p.labDone}/{p.labTotal}
+                  {p.lessonsDone}/{p.lessonsTotal} lessons{p.labTotal > 0 ? ` · Lab ${p.labDone}/${p.labTotal}` : ""}
                 </p>
                 {p.complete && (
                   <button
@@ -127,7 +127,7 @@ export function LearnPath() {
             )}
 
             {hydrated && p.complete && !expanded[unit.number] ? (
-              <p className="text-center text-sm text-muted py-2">Unit complete{p.labDone === p.labTotal ? ", lab included" : `, lab ${p.labDone}/${p.labTotal}`}. ★</p>
+              <p className="text-center text-sm text-muted py-2">Unit complete{p.labTotal === 0 ? "" : p.labDone === p.labTotal ? ", lab included" : `, lab ${p.labDone}/${p.labTotal}`}. ★</p>
             ) : (
             <ol className="flex flex-col items-center gap-11 py-4 pb-10">
               {unit.lessons.map((lesson, li) => {
@@ -165,6 +165,7 @@ export function LearnPath() {
                   </li>
                 );
               })}
+              {p.labTotal > 0 && (
               <li className="relative" style={{ transform: `translateX(${OFFSETS[unit.lessons.length % OFFSETS.length]}px)` }}>
                 <Link
                   href={labHref}
@@ -184,6 +185,7 @@ export function LearnPath() {
                   Lab{hydrated ? ` · ${p.labDone}/${p.labTotal}` : ""}
                 </p>
               </li>
+              )}
             </ol>
             )}
           </section>

@@ -61,7 +61,7 @@ for (const ex of pythonExercises) {
 check("no stale SQL expected entries", Object.keys(sqlExp).every((k) => sqlExercises.some((e) => e.slug === k)));
 check("no stale Python expected entries", Object.keys(pyExp).every((k) => pythonExercises.some((e) => e.slug === k)));
 // lessons: 6 units × 5 lessons × (1 concept + 5 items); every item well-formed
-check("7 units (Level 0 + 6 chapters), 5+ lessons each", units.length === 7 && units[0].number === 0 && units.every((u) => u.lessons.length >= 5), units.map((u) => u.lessons.length).join(","));
+check("8 units (Level 0 + 6 chapters + Toolbox), 5+ lessons each", units.length === 8 && units[0].number === 0 && units[7].number === 7 && units.every((u) => u.lessons.length >= 5), units.map((u) => u.lessons.length).join(","));
 const itemIds = new Set<string>();
 for (const l of allLessons) {
   check(`${l.id}: concept card first, 5 interactions`, l.items[0]?.kind === "concept" && l.items.length === 6 && l.items.slice(1).every((it) => it.kind !== "concept"), l.items.map((i) => i.kind).join(","));

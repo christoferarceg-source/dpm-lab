@@ -24,7 +24,7 @@ export type DpmConnection = {
 /** 1–6, the Playbook week a story chapter belongs to. */
 export type ChapterNumber = 1 | 2 | 3 | 4 | 5 | 6;
 /** Units on the learning path: Level 0 (SQL & Python 101) plus the six story chapters. */
-export type UnitNumber = 0 | ChapterNumber;
+export type UnitNumber = 0 | ChapterNumber | 7;
 
 export type SqlExercise = {
   slug: string;

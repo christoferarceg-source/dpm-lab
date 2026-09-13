@@ -44,7 +44,7 @@ export function nextLesson(data: ProgressData): Lesson | null {
 }
 
 export function currentUnit(data: ProgressData): UnitNumber {
-  return nextLesson(data)?.unit ?? 6;
+  return nextLesson(data)?.unit ?? 7;
 }
 
 export function totals(data: ProgressData): { lessonsDone: number; lessonsTotal: number; labsDone: number; labsTotal: number } {

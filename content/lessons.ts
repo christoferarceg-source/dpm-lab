@@ -546,6 +546,82 @@ const u6: Lesson[] = [
   ]),
 ];
 
+// ======================= UNIT 7 · Toolbox =======================
+const u7: Lesson[] = [
+  lesson("u7-l1", 7, "The stack, left to right", [
+    concept(
+      "Vendors change; layers don't",
+      "Data flows from **sources** through **ingestion** into a **warehouse or lakehouse**, gets **transformed and orchestrated** into modelled tables, is read through a **semantic layer and BI**, with **quality, catalog, and governance** across everything and **ML platforms** at the end. Every tool name is a position on that line.",
+      "modern-data-stack-map"
+    ),
+    order("Put the layers in the order data flows.", ["Sources (CRM, ERP, events)", "Ingestion (Fivetran, Kafka)", "Warehouse / lakehouse (Snowflake, Databricks)", "Transformation + BI (dbt, Looker, Tableau)"], "Sources → ingestion → storage and compute → transformation → consumption. Quality and governance sit across all of it.", "modern-data-stack-map"),
+    match("Match the tool to its layer.", [["Fivetran", "Ingestion"], ["Snowflake", "Warehouse"], ["dbt", "Transformation"], ["Tableau", "BI / consumption"]], "Four tools, four layers. Learn the layer and the vendor becomes interchangeable.", "modern-data-stack-map"),
+    mcq("ETL vs ELT: what does the modern pattern change?", ["Nothing, it's a rename", "Raw data is loaded first and transformed inside the warehouse, so raw stays available to re-derive metrics", "Transformation happens before loading, so the warehouse only holds clean data", "It removes the need for a warehouse"], 1, "ELT keeps Bronze around. When the definition of revenue changes, you can recompute from raw instead of re-ingesting.", ["It changes where the transform runs and what you keep.", undefined, "That's ETL, the classic enterprise pattern.", "It relies on the warehouse doing the work."], "modern-data-stack-map"),
+    tf("Meridian's nightly crm_deals_ingest is a batch job; a Kafka topic of deal_stage_changed events would be streaming.", true, "Batch moves a snapshot on a schedule; streaming moves each event as it happens. Most sales analytics is batch.", "modern-data-stack-map"),
+    fill("If 'revenue' is computed in five dashboards, you have five definitions. A ___ layer defines it once.", ["semantic", "storage", "network", "presentation"], "semantic", "Looker's LookML, dbt metrics, DataOS contracts: the Metric Dependency Tree made executable.", "modern-data-stack-map"),
+  ]),
+  lesson("u7-l2", 7, "Warehouses and lakehouses", [
+    concept(
+      "Where SQL runs at scale",
+      "**Snowflake**: a cloud warehouse with storage and compute separated; you pay for warehouse run-time. **Databricks**: a lakehouse on open files (Delta Lake) processed by Spark, with notebooks, Unity Catalog, and MLflow. **BigQuery**: serverless, billed by bytes scanned. **Redshift**: AWS's warehouse. **Fabric**: Microsoft's all-in-one with OneLake and Power BI.",
+      "tools-warehouses-lakehouses"
+    ),
+    match("Match the platform to how it bills.", [["Snowflake", "Compute credits while a warehouse runs"], ["BigQuery", "Bytes scanned per query"], ["Microsoft Fabric", "Capacity units, pooled"], ["Databricks", "DBUs for clusters + your cloud storage"]], "Cost models drive behaviour: a careless SELECT * costs money on BigQuery; an idle warehouse costs money on Snowflake.", "tools-warehouses-lakehouses"),
+    mcq("Which platform popularised the Bronze/Silver/Gold medallion pattern?", ["Snowflake", "Databricks", "BigQuery", "Redshift"], 1, "The lakehouse architecture came out of Databricks, and so did the medallion vocabulary you used in weeks 3 and 4.", undefined, "tools-warehouses-lakehouses"),
+    tf("Snowflake's Time Travel lets you query a table as it was yesterday.", true, "Handy for 'what did the dashboard show on Monday?' investigations, and for undoing a bad load.", "tools-warehouses-lakehouses"),
+    fill("Databricks makes open Parquet files behave like tables through ___ Lake.", ["Delta", "Iceberg", "Data", "Gold"], "Delta", "Delta Lake adds transactions, schema enforcement, and time travel to files in your own storage. Apache Iceberg is the main alternative format.", "tools-warehouses-lakehouses"),
+    mcq("First hour on a new warehouse: what teaches you the most about what the company actually uses?", ["The vendor's tutorial", "The query history: who runs what, how often, how expensive", "The logo colours", "The pricing page"], 1, "Query history is the truth about usage and cost. It's also where you find the five competing definitions of revenue.", undefined, "tools-warehouses-lakehouses"),
+  ]),
+  lesson("u7-l3", 7, "Moving and shaping data", [
+    concept(
+      "Two generations of integration",
+      "**Modern ELT**: Fivetran or Airbyte load raw tables on a schedule; dbt transforms them with versioned SQL and tests; Airflow schedules the whole DAG; Kafka carries events in real time. **Enterprise ETL**: Informatica, Talend, and Ab Initio transform before loading with heavy lineage and governance, common in banks and telecoms.",
+      "tools-integration-pipelines"
+    ),
+    match("Match the tool to its job.", [["Fivetran", "Managed connectors, source → warehouse"], ["dbt", "Versioned SQL transformations with tests"], ["Airflow", "Schedule and retry the pipeline (DAGs)"], ["Kafka", "Stream events in order, at scale"]], "Load, transform, orchestrate, stream. Most modern stacks are exactly these four.", "tools-integration-pipelines"),
+    mcq("Ab Initio: where are you most likely to meet it, and what's the usual question?", ["Startups; 'should we adopt it?'", "Large banks, telecoms, government; 'what would it take to move off it?'", "Marketing teams; 'can it build dashboards?'", "Nowhere; it's discontinued"], 1, "A proprietary, high-performance parallel ETL platform (GDE graphs on the Co>Operating System, a metadata hub with lineage). Powerful, expensive, scarce skills, usually the incumbent.", undefined, "tools-integration-pipelines"),
+    tf("Airflow reporting a task as successful means the data it produced is correct.", false, "Airflow knows the task ran. Duplicates and partial files pass. That's why dbt tests, Soda, or Monte Carlo sit beside it.", "tools-integration-pipelines"),
+    fill("dbt models are versioned SQL ___ statements that run inside the warehouse.", ["SELECT", "INSERT", "GRANT", "CREATE USER"], "SELECT", "Each model is a SELECT; dbt materialises it as a table or view and runs your declared tests after.", "tools-integration-pipelines"),
+    mcq("Fivetran bills by monthly active rows. A wide CRM sync suddenly triples the bill. Best first question?", ["Which tables and columns are we syncing that nobody reads?", "Should we switch warehouses?", "Is the dashboard wrong?", "Can we stop syncing entirely?"], 0, "Integration cost tracks volume. Sync what the data products need, at the frequency their freshness SLO requires.", undefined, "tools-integration-pipelines"),
+  ]),
+  lesson("u7-l4", 7, "Seeing the data", [
+    concept(
+      "Where does the definition live?",
+      "BI tools are consumption layers. **Tableau** and **Power BI** are visual-first and definitions often live in each workbook or model; **Looker** is semantic-first: LookML defines measures once and every dashboard reads them. **Qlik** has an associative engine; **Metabase** and **Redash** are lightweight, SQL-first. Ask of any of them: where is revenue defined?",
+      "tools-bi-semantic-layer"
+    ),
+    match("Match the tool to its defining trait.", [["Looker", "LookML semantic layer, governed metrics"], ["Tableau", "Drag-and-drop visual analysis, workbooks"], ["Power BI", "DAX measures, part of Microsoft Fabric"], ["Redash", "SQL-first queries pinned to dashboards"]], "Same job, different philosophies about where definitions live.", "tools-bi-semantic-layer"),
+    mcq("A company has twenty Tableau workbooks each computing 'revenue'. What is that, in week 2's terms?", ["A data product with twenty consumers", "Twenty consumption layers and no product: the definition should move to a semantic layer", "Good redundancy", "A Looker problem"], 1, "A dashboard interprets; it doesn't govern. Twenty independent formulas is week 6's 'which number is right?' waiting to happen.", undefined, "tools-bi-semantic-layer"),
+    tf("Redash, the tool in your original PRD, is a SQL-first open-source dashboard tool.", true, "Write SQL, save the query, add a visualisation, pin it. Definitions live in the query text, so ownership of the query matters.", "tools-bi-semantic-layer"),
+    fill("In Looker, dimensions and measures are defined in version-controlled ___ code.", ["LookML", "DAX", "YAML", "Python"], "LookML", "LookML is the classic semantic layer; dbt metrics, Cube, and Fabric's semantic model play the same role elsewhere.", "tools-bi-semantic-layer"),
+    mcq("Adoption of a new dashboard should be measured as…", ["Total views", "Distinct viewers per week, by role", "Number of charts", "Licence count"], 1, "Week 4's lesson applies to every BI tool: people, not refreshes.", undefined, "tools-bi-semantic-layer"),
+  ]),
+  lesson("u7-l5", 7, "Trusting and governing", [
+    concept(
+      "SLOs as monitors, definitions as records",
+      "**Monte Carlo** discovers freshness, volume, and schema anomalies with lineage; **Great Expectations**, **Soda**, and **dbt tests** enforce the checks you wrote. **Collibra**, **Alation**, and **Atlan** are catalogs and governance; **Unity Catalog** and **Snowflake Horizon** are the platform-native versions. **DataOS** is a platform built around data products themselves: ports, contracts, SLOs, semantics as first-class resources.",
+      "tools-quality-governance-catalog"
+    ),
+    match("Match the tool to what it does.", [["Monte Carlo", "Discovers anomalies with lineage"], ["Soda / Great Expectations", "Enforces checks you wrote"], ["Alation / Atlan", "Catalog: find, own, document"], ["Unity Catalog", "Platform-native permissions and lineage"]], "Discover, enforce, find, permit. Mature teams have all four.", "tools-quality-governance-catalog"),
+    mcq("Meridian's partial-file day (30% of rows, status success). Which tool would have caught it without a hand-written check?", ["Airflow", "A data observability tool like Monte Carlo (volume anomaly)", "Tableau", "Fivetran"], 1, "Observability tools learn normal volume and alert on deviation. Your trailing-average query in week 3 is the same idea, written by hand.", undefined, "tools-quality-governance-catalog"),
+    tf("A governance policy written in a catalog is automatically enforced in the warehouse.", false, "Unless it's wired to the platform (Unity Catalog, Horizon, IAM), a policy document is advisory. Ask 'enforced or advisory?'", "tools-quality-governance-catalog"),
+    fill("DataOS treats input ports, transforms, output ports, and ___ as first-class resources you declare in a spec.", ["SLOs", "logos", "invoices", "slides"], "SLOs", "That's the Playbook's activation week as a product: the four pieces, declared rather than hand-built.", "tools-quality-governance-catalog"),
+    mcq("A new analyst can't find the right deals table. Which tool is the fix?", ["A bigger warehouse", "A catalog with ownership and usage signals (Alation, Atlan, Unity Catalog)", "More dashboards", "A Kafka topic"], 1, "Findability is a catalog problem. Popularity from query logs and a named owner beat a long description.", undefined, "tools-quality-governance-catalog"),
+  ]),
+  lesson("u7-l6", 7, "ML platforms and notebooks", [
+    concept(
+      "Where models live",
+      "Analysis and prototyping happen in **notebooks** (Jupyter, Databricks, Hex). **MLflow** tracks experiments and holds the model registry. **SageMaker** (AWS), **Vertex AI** (Google), and **Dataiku** are end-to-end platforms. **Feature stores** define a feature once for training and production. The Data PM's questions: lineage, reproducibility, evaluation, monitoring, cost per correct prediction.",
+      "tools-ml-platforms"
+    ),
+    match("Match the tool to its role.", [["MLflow", "Experiment tracking and model registry"], ["SageMaker", "AWS end-to-end ML platform"], ["Dataiku", "Visual data science for mixed teams"], ["Feature store", "One feature definition for training and serving"]], "Track, host, collaborate, define once.", "tools-ml-platforms"),
+    mcq("A model in production; nobody can say which data it was trained on. Which capability is missing?", ["A faster GPU", "Experiment tracking and a model registry (MLflow-style)", "A dashboard", "A Kafka topic"], 1, "Reproducibility: code, data, parameters, and metrics per run, and a registry that says which version is live.", undefined, "tools-ml-platforms"),
+    tf("A feature store is the ML equivalent of a semantic layer: one definition, several consumers.", true, "days_in_negotiation defined once, served identically to training and to the live model.", "tools-ml-platforms"),
+    fill("Before any model reaches a decision, run an ___ set with agreed answers.", ["evaluation", "marketing", "backup", "onboarding"], "evaluation", "Week 6's agent lesson applies to classical models too: monitoring says it ran, evaluation says it was right.", "tools-ml-platforms"),
+    mcq("A notebook feeding the board deck reads a CSV someone exported in March. What's the Data PM's move?", ["Nothing, it works", "Point it at the governed data product so it inherits the definitions and SLOs", "Convert it to Excel", "Add a chart"], 1, "Notebooks are fine; ungoverned inputs aren't. The lineage question is the first one to ask of anything model-shaped.", undefined, "tools-ml-platforms"),
+  ]),
+];
+
 const UNIT_COLORS: Record<ChapterNumber, string> = {
   1: "#4f46e5",
   2: "#0891b2",
@@ -566,6 +642,15 @@ const unit0: Unit = {
   lessons: u0,
 };
 
+const unit7: Unit = {
+  number: 7,
+  title: "Tools of the trade",
+  week: "Toolbox · The market",
+  tagline: "Snowflake, Databricks, dbt, Tableau, Ab Initio and the rest: what each does and what to ask of it.",
+  color: "#475569",
+  lessons: u7,
+};
+
 export const units: Unit[] = [
   unit0,
   ...chapters.map((c) => ({
@@ -576,6 +661,7 @@ export const units: Unit[] = [
     color: UNIT_COLORS[c.number],
     lessons: lessonsByUnit[c.number],
   })),
+  unit7,
 ];
 
 export const allLessons: Lesson[] = units.flatMap((u) => u.lessons);
@@ -585,5 +671,7 @@ export function getLesson(id: string): Lesson | undefined {
   return byId.get(id);
 }
 export function lessonsForUnit(n: UnitNumber): Lesson[] {
-  return n === 0 ? u0 : lessonsByUnit[n];
+  if (n === 0) return u0;
+  if (n === 7) return u7;
+  return lessonsByUnit[n];
 }
