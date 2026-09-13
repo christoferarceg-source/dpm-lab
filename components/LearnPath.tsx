@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useState } from "react";
+import { setHash, useHash } from "@/lib/use-hash";
 import { units } from "@/content/lessons";
 import { getChapter } from "@/content/story";
 import { sqlExercisesForChapter } from "@/content/exercises-sql";
@@ -41,8 +41,17 @@ export function LearnPath() {
   const xp = computeXp(data);
   const lvl = levelFor(xp.total);
 
-  const [expanded, setExpanded] = useState<Record<number, boolean>>({});
+  const hash = useHash();
   const nextUnit = next ? units.find((u) => u.number === next.unit) : null;
+  const hashUnit = hash.startsWith("unit-") ? Number(hash.slice(5)) : NaN;
+  const openNumber = units.some((u) => u.number === hashUnit) ? hashUnit : (nextUnit?.number ?? units[0].number);
+  const openIndex = units.findIndex((u) => u.number === openNumber);
+  const unit = units[openIndex];
+  const p = progress[openIndex];
+  const labs = sqlExercisesForChapter(unit.number);
+  const labHref = labs.length ? `/practice/sql#${labs[0].slug}` : "/practice";
+  const prevUnit = units[openIndex - 1];
+  const nextUnitOnPath = units[openIndex + 1];
   const nextIndex = next && nextUnit ? nextUnit.lessons.findIndex((l) => l.id === next.id) + 1 : 0;
 
   return (
@@ -85,19 +94,57 @@ export function LearnPath() {
         </Link>
       )}
 
-      {units.map((unit, ui) => {
-        const p = progress[ui];
-        const labs = sqlExercisesForChapter(unit.number);
-        const labHref = labs.length ? `/practice/sql#${labs[0].slug}` : "/practice";
-        return (
-          <section key={unit.number} className="space-y-4">
-            <div className="rounded-2xl p-4 sm:p-5 text-white flex items-start justify-between gap-3" style={{ background: unit.color }}>
+      <div className="grid grid-cols-1 gap-6 lg:grid-cols-[240px_minmax(0,1fr)]">
+        {/* Table of contents */}
+        <nav aria-label="Chapters" className="lg:sticky lg:top-6 self-start min-w-0">
+          <p className="hidden lg:block text-[0.7rem] uppercase tracking-wide text-muted font-semibold mb-2 px-1">Contents</p>
+          <ol className="flex lg:flex-col gap-2 overflow-x-auto lg:overflow-visible -mx-4 px-4 lg:mx-0 lg:px-0 pb-1">
+            {units.map((u, i) => {
+              const up = progress[i];
+              const isOpen = u.number === openNumber;
+              return (
+                <li key={u.number} className="shrink-0 lg:shrink">
+                  <button
+                    onClick={() => setHash(`unit-${u.number}`)}
+                    className={`w-full text-left flex items-center gap-3 rounded-xl border-2 px-3 py-2 transition-colors ${
+                      isOpen ? "bg-surface" : "border-transparent hover:bg-surface"
+                    }`}
+                    style={{ borderColor: isOpen ? u.color : undefined }}
+                  >
+                    <span
+                      className="w-7 h-7 rounded-full flex items-center justify-center text-xs font-semibold text-white shrink-0"
+                      style={{ background: up.complete ? u.color : `${u.color}99` }}
+                    >
+                      {up.complete ? "★" : i}
+                    </span>
+                    <span className="min-w-0">
+                      <span className="block text-[0.65rem] uppercase tracking-wide text-muted">{u.week}</span>
+                      <span className="block text-sm font-medium truncate max-w-[10rem] lg:max-w-none">{u.title}</span>
+                      {hydrated && (
+                        <span className="block h-1 rounded-full bg-border overflow-hidden mt-1">
+                          <span className="block h-full" style={{ width: `${Math.round(up.fraction * 100)}%`, background: u.color }} />
+                        </span>
+                      )}
+                    </span>
+                  </button>
+                </li>
+              );
+            })}
+          </ol>
+        </nav>
+
+        {/* Open chapter */}
+        <section key={unit.number} className="bg-surface border border-border rounded-2xl overflow-hidden animate-pop min-w-0">
+          <div className="p-5 sm:p-6 text-white" style={{ background: unit.color }}>
+            <div className="flex items-start justify-between gap-3">
               <div className="min-w-0">
-                <p className="text-[0.7rem] uppercase tracking-wide opacity-80">{unit.week}</p>
-                <h2 className="text-lg font-semibold leading-tight">{unit.title}</h2>
-                <p className="text-sm opacity-90 mt-0.5">{unit.tagline}</p>
+                <p className="text-[0.7rem] uppercase tracking-wide opacity-80">
+                  Chapter {openIndex + 1} of {units.length} · {unit.week}
+                </p>
+                <h2 className="text-2xl font-semibold leading-tight mt-1">{unit.title}</h2>
+                <p className="text-sm opacity-90 mt-1.5 max-w-xl">{unit.tagline}</p>
               </div>
-              <div className="shrink-0 text-right">
+              <div className="shrink-0">
                 {getChapter(unit.number) ? (
                   <Link href={`/chapters/${unit.number}`} className="inline-block text-xs font-medium bg-white/20 hover:bg-white/30 rounded-md px-2.5 py-1.5">
                     Story
@@ -108,64 +155,53 @@ export function LearnPath() {
               </div>
             </div>
             {hydrated && (
-              <div className="flex items-center gap-3 px-1 -mt-1">
-                <div className="h-1.5 flex-1 rounded-full bg-border overflow-hidden">
-                  <div className="h-full rounded-full transition-all" style={{ width: `${Math.round(p.fraction * 100)}%`, background: unit.color }} />
+              <div className="flex items-center gap-3 mt-4">
+                <div className="h-1.5 flex-1 rounded-full bg-white/25 overflow-hidden">
+                  <div className="h-full rounded-full bg-white transition-all" style={{ width: `${Math.round(p.fraction * 100)}%` }} />
                 </div>
-                <p className="text-xs text-muted tabular-nums shrink-0">
+                <p className="text-xs opacity-90 tabular-nums shrink-0">
                   {p.lessonsDone}/{p.lessonsTotal} lessons{p.labTotal > 0 ? ` · Lab ${p.labDone}/${p.labTotal}` : ""}
                 </p>
-                {p.complete && (
-                  <button
-                    onClick={() => setExpanded((e) => ({ ...e, [unit.number]: !e[unit.number] }))}
-                    className="text-xs text-accent underline underline-offset-2 shrink-0"
-                  >
-                    {expanded[unit.number] ? "Hide lessons" : "Show lessons"}
-                  </button>
-                )}
               </div>
             )}
+          </div>
 
-            {hydrated && p.complete && !expanded[unit.number] ? (
-              <p className="text-center text-sm text-muted py-2">Unit complete{p.labTotal === 0 ? "" : p.labDone === p.labTotal ? ", lab included" : `, lab ${p.labDone}/${p.labTotal}`}. ★</p>
-            ) : (
-            <ol className="flex flex-col items-center gap-11 py-4 pb-10">
-              {unit.lessons.map((lesson, li) => {
-                const done = !!data.lessons[lesson.id];
-                const isNext = next?.id === lesson.id;
-                const offset = OFFSETS[li % OFFSETS.length];
-                return (
-                  <li key={lesson.id} className="relative" style={{ transform: `translateX(${offset}px)` }}>
-                    {isNext && (
-                      <span
-                        className="absolute left-full top-1/2 -translate-y-1/2 ml-3 text-[0.65rem] font-bold uppercase tracking-wide px-2 py-1 rounded-md text-white animate-pop whitespace-nowrap"
-                        style={{ background: unit.color }}
-                      >
-                        Start
-                      </span>
-                    )}
-                    <Link
-                      href={`/lesson/${lesson.id}`}
-                      aria-label={`${lesson.title}${done ? " (done)" : ""}`}
-                      className={`node-shadow flex items-center justify-center w-16 h-16 rounded-full transition-transform ${
-                        done || isNext ? "text-white" : "bg-surface-2 text-muted border border-border"
-                      } ${isNext ? "ring-4 ring-offset-2 ring-offset-bg" : ""}`}
-                      style={{
-                        background: done || isNext ? unit.color : undefined,
-                        // ring colour follows the unit
-                        ["--tw-ring-color" as string]: `${unit.color}55`,
-                        ["--node-shadow" as string]: done || isNext ? "rgba(0,0,0,0.25)" : "var(--border)",
-                      }}
+          <ol className="flex flex-col items-center gap-11 py-8 pb-12 px-4">
+            {unit.lessons.map((lesson, li) => {
+              const done = !!data.lessons[lesson.id];
+              const isNext = next?.id === lesson.id;
+              const offset = OFFSETS[li % OFFSETS.length];
+              return (
+                <li key={lesson.id} className="relative" style={{ transform: `translateX(${offset}px)` }}>
+                  {isNext && (
+                    <span
+                      className="absolute left-full top-1/2 -translate-y-1/2 ml-3 text-[0.65rem] font-bold uppercase tracking-wide px-2 py-1 rounded-md text-white animate-pop whitespace-nowrap"
+                      style={{ background: unit.color }}
                     >
-                      {done ? <Star /> : <span className="text-lg font-semibold">{li + 1}</span>}
-                    </Link>
-                    <p className="absolute top-full left-1/2 -translate-x-1/2 mt-1.5 w-36 text-center text-[0.7rem] text-muted leading-tight line-clamp-2">
-                      {lesson.title}
-                    </p>
-                  </li>
-                );
-              })}
-              {p.labTotal > 0 && (
+                      Start
+                    </span>
+                  )}
+                  <Link
+                    href={`/lesson/${lesson.id}`}
+                    aria-label={`${lesson.title}${done ? " (done)" : ""}`}
+                    className={`node-shadow flex items-center justify-center w-16 h-16 rounded-full transition-transform ${
+                      done || isNext ? "text-white" : "bg-surface-2 text-muted border border-border"
+                    } ${isNext ? "ring-4 ring-offset-2 ring-offset-surface" : ""}`}
+                    style={{
+                      background: done || isNext ? unit.color : undefined,
+                      ["--tw-ring-color" as string]: `${unit.color}55`,
+                      ["--node-shadow" as string]: done || isNext ? "rgba(0,0,0,0.25)" : "var(--border)",
+                    }}
+                  >
+                    {done ? <Star /> : <span className="text-lg font-semibold">{li + 1}</span>}
+                  </Link>
+                  <p className="absolute top-full left-1/2 -translate-x-1/2 mt-1.5 w-36 text-center text-[0.7rem] text-muted leading-tight line-clamp-2">
+                    {lesson.title}
+                  </p>
+                </li>
+              );
+            })}
+            {p.labTotal > 0 && (
               <li className="relative" style={{ transform: `translateX(${OFFSETS[unit.lessons.length % OFFSETS.length]}px)` }}>
                 <Link
                   href={labHref}
@@ -185,12 +221,30 @@ export function LearnPath() {
                   Lab{hydrated ? ` · ${p.labDone}/${p.labTotal}` : ""}
                 </p>
               </li>
-              )}
-            </ol>
             )}
-          </section>
-        );
-      })}
+          </ol>
+
+          <div className="flex items-center justify-between gap-3 border-t border-border px-4 sm:px-6 py-4 text-sm">
+            {prevUnit ? (
+              <button onClick={() => setHash(`unit-${prevUnit.number}`)} className="text-muted hover:text-fg text-left">
+                ← <span className="hidden sm:inline">{prevUnit.week} · </span>{prevUnit.title}
+              </button>
+            ) : (
+              <span />
+            )}
+            <span className="text-xs text-muted tabular-nums shrink-0">
+              {openIndex + 1} / {units.length}
+            </span>
+            {nextUnitOnPath ? (
+              <button onClick={() => setHash(`unit-${nextUnitOnPath.number}`)} className="font-semibold text-right" style={{ color: nextUnitOnPath.color }}>
+                <span className="hidden sm:inline">{nextUnitOnPath.week} · </span>{nextUnitOnPath.title} →
+              </button>
+            ) : (
+              <span className="text-muted">The end</span>
+            )}
+          </div>
+        </section>
+      </div>
     </div>
   );
 }

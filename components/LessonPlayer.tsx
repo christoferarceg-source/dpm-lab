@@ -145,7 +145,7 @@ export function LessonPlayer({ lesson }: { lesson: Lesson }) {
             <p className="text-2xl font-semibold tabular-nums">{Math.round(accuracy * 100)}%</p>
           </div>
         </div>
-        <button onClick={() => router.push("/")} className="mt-4 w-full max-w-xs px-5 py-3.5 rounded-xl font-semibold text-white node-shadow" style={{ background: unit.color }}>
+        <button onClick={() => router.push(`/#unit-${lesson.unit}`)} className="mt-4 w-full max-w-xs px-5 py-3.5 rounded-xl font-semibold text-white node-shadow" style={{ background: unit.color }}>
           Continue
         </button>
       </div>
@@ -183,7 +183,7 @@ export function LessonPlayer({ lesson }: { lesson: Lesson }) {
           })}
         </ul>
         <div className="grid grid-cols-2 gap-3 mt-auto">
-          <Link href="/" className="px-4 py-3 rounded-xl border-2 border-border text-center font-semibold">
+          <Link href={`/#unit-${lesson.unit}`} className="px-4 py-3 rounded-xl border-2 border-border text-center font-semibold">
             Back
           </Link>
           <button onClick={retry} className="px-4 py-3 rounded-xl font-semibold text-white node-shadow" style={{ background: unit.color }}>
@@ -205,7 +205,7 @@ export function LessonPlayer({ lesson }: { lesson: Lesson }) {
     <div className="flex-1 flex flex-col">
       {/* top bar */}
       <div className="px-4 pt-4 pb-2 flex items-center gap-3 max-w-2xl w-full mx-auto">
-        <Link href="/" aria-label="Quit lesson" className="text-muted hover:text-fg text-2xl leading-none px-1">
+        <Link href={`/#unit-${lesson.unit}`} aria-label="Quit lesson" className="text-muted hover:text-fg text-2xl leading-none px-1">
           ×
         </Link>
         <div className="flex-1 h-3 rounded-full bg-border overflow-hidden">
