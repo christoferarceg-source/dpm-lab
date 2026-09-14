@@ -1,6 +1,7 @@
 # DPM Lab
 
 **Live:** https://christoferarceg-source.github.io/dpm-lab/
+**Built by:** [Christofer Arce](https://christoferarceg-source.github.io/christoferarce-site/)
 
 Learn Data Product Management the way Duolingo teaches languages: one
 concept, five quick interactions, about a minute. The story is your first six
@@ -112,6 +113,10 @@ scripts/
   must assign `result`.
 - **KB entry**: append to `content/kb.ts`; use `[[other-slug]]` to
   cross-link; add a flashcard in `content/flashcards.ts`.
+
+## Author
+
+Built by [Christofer Arce](https://christoferarceg-source.github.io/christoferarce-site/), a product manager working on data products.
 
 ## Roadmap
 

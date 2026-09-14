@@ -8,6 +8,7 @@ import { allUnitProgress, totals } from "@/lib/chapter-progress";
 import { dueCards, useProgress } from "@/lib/progress-store";
 import { computeXp, levelFor, levelTitle, XP_LAB_EXERCISE, XP_LESSON, XP_PERFECT_BONUS } from "@/lib/xp";
 import { PageHeader } from "@/components/PageHeader";
+import { AUTHOR, REPO_URL } from "@/lib/site";
 
 function Stat({ label, value, sub }: { label: string; value: string; sub?: string }) {
   return (
@@ -85,6 +86,21 @@ export default function ProfilePage() {
           <p className="font-semibold">The story</p>
           <p className="text-sm text-muted mt-1">Meridian, week by week: briefs and debriefs.</p>
         </Link>
+      </section>
+
+      <section className="bg-surface border border-border rounded-xl p-4 text-sm">
+        <p className="text-xs uppercase tracking-wide text-muted mb-1">About DPM Lab</p>
+        <p>
+          Built by{" "}
+          <a href={AUTHOR.url} rel="author" className="font-semibold text-accent underline underline-offset-2">
+            {AUTHOR.name}
+          </a>
+          , a product manager working on data products. The code is open on{" "}
+          <a href={REPO_URL} className="text-accent underline underline-offset-2">
+            GitHub
+          </a>
+          .
+        </p>
       </section>
 
       {hydrated && (

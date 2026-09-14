@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { AUTHOR } from "@/lib/site";
 
 const tabs = [
   { href: "/", label: "Learn", icon: PathIcon, match: (p: string) => p === "/" || p.startsWith("/chapters") || p.startsWith("/lesson") },
@@ -80,6 +81,9 @@ export function NavBar() {
               Library
             </Link>
           </nav>
+          <a href={AUTHOR.url} rel="author" className="ml-auto text-xs text-muted hover:text-fg whitespace-nowrap">
+            by {AUTHOR.name}
+          </a>
         </div>
       </header>
       <nav className="sm:hidden fixed bottom-0 inset-x-0 z-40 bg-surface border-t border-border safe-bottom pt-1.5">
